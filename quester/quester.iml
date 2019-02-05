@@ -8,5 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="quantumbot-lemons-1549147508" level="project" />
+    <orderEntry type="library" name="quantumbot-1547332851" level="project" />
   </component>
 </module>
