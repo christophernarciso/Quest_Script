@@ -1,3 +1,5 @@
+package org.quester;
+
 import org.quantumbot.api.Script;
 import org.quantumbot.client.script.ScriptManifest;
 import org.quantumbot.enums.Quest;
