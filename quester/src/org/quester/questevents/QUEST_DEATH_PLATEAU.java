@@ -7,14 +7,23 @@ import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.EnterAmountEvent;
+import org.quantumbot.events.containers.BankEvent;
+import org.quantumbot.events.containers.EquipmentLoadout;
 import org.quantumbot.events.containers.InventoryInteractEvent;
+import org.quantumbot.events.ge.GEEvent;
 import org.quantumbot.events.interactions.InteractEvent;
 import org.quantumbot.interfaces.Logger;
+import org.quantumbot.utils.StringUtils;
 import org.quester.questutil.HelperMethods;
+
+import java.util.HashMap;
+import java.util.List;
 
 public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
 
     private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
+    private GEEvent geEvent;
     private int grabStart = 3561, index = 0;
     private boolean shouldGrabBalls = true, shouldTalkToGuard = true, shouldTalkToSaba = true, shouldTalkToDunstan = true, shouldFindPath = true;
     private final String[] QUEST_DIALOGUE_DEATH_PLAT = {"Do you have any quests for me?", "No but perhaps I could try and find one?", "I'm looking for the guard that was on last night.",
@@ -77,6 +86,29 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
     public QUEST_DEATH_PLATEAU(QuantumBot bot, HelperMethods helper) {
         super(bot);
         this.helper = helper;
+    }
+
+    @Override
+    public void onStart() {
+
+        // Required items needed
+        itemReq.put("Coins", 5000);
+        itemReq.put("Bread", 10);
+        itemReq.put("Trout", 10);
+        itemReq.put("Iron bar", 1);
+        itemReq.put("Asgarnian ale", 1);
+        itemReq.put("Premade blurb' sp.", 1);
+        itemReq.put("Games necklace(1~8)", 1);
+
+        if (!helper.hasQuestItemsBeforeStarting(itemReq)){
+            // Load bank event and execute withdraw
+            try {
+                helper.getBankEvent(itemReq).execute();
+            } catch (InterruptedException e) {
+                info("Failed to execute bankevent onStart");
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -251,7 +283,7 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                             } else {
                                 if (helper.inArea(START_AREA)) {
                                     if (helper.talkTo("Denulth"))
-                                    sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                                        sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                                 } else {
                                     helper.getWeb(START_AREA).execute();
                                 }
@@ -278,7 +310,7 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                         } else {
                             if (helper.inArea(START_AREA)) {
                                 if (helper.talkTo("Denulth"))
-                                sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                                    sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             } else {
                                 helper.getWeb(START_AREA).execute();
                             }
@@ -327,4 +359,29 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
         }
         sleep(600);
     }
+
+    // Beginning concept to buy all quest buyables
+    private void loadBuyables(HashMap<String, Integer> hashMap) {
+        geEvent = new GEEvent(getBot());
+        for (String key : hashMap.keySet()) {
+            if (!getBot().getInventory().contains(key) && !getBot().getBank().contains(key)) {
+                if (key.contains("~")){
+                    List<String> expanded = StringUtils.expandItemName(key);
+                    key = StringUtils.expandItemName(key).get(expanded.size() - 1);
+                    info("Expanded: " + key);
+                }
+                int originalPrice = helper.getPriceCache().get(key).getBuyAverage();
+                // Buy over 30% value for instant transactions
+                int price = (int) (originalPrice + (originalPrice * .30));
+                if (price > 0) {
+                    info("Adding " + key + " x" + hashMap.get(key) + " to buy list");
+                    geEvent.buy(hashMap.get(key), price, key);
+                } else {
+                    getBot().stop();
+                }
+            }
+        }
+    }
+
+
 }
