@@ -5,10 +5,10 @@ import org.quantumbot.client.script.ScriptManifest;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.containers.BankOpenEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questevents.QUEST_DEATH_PLATEAU;
+import org.quester.questevents.DeathPlateauEvent;
 import org.quester.questutil.HelperMethods;
 
-@ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Questing")
+@ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Quest")
 public class QuestMain extends Script implements Logger{
 
     private HelperMethods helperMethods;
@@ -29,8 +29,9 @@ public class QuestMain extends Script implements Logger{
             new BankOpenEvent(getBot()).execute();
 
         if (!getBot().getQuests().isComplete(Quest.DEATH_PLATEAU))
-            new QUEST_DEATH_PLATEAU(getBot(), helperMethods).execute();
+            new DeathPlateauEvent(getBot(), helperMethods).execute();
 
+        sleep(1000);
     }
 
     @Override

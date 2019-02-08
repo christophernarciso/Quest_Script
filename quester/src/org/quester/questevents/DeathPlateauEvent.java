@@ -4,11 +4,10 @@ import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.api.widgets.Widget;
+import org.quantumbot.enums.Quest;
 import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.EnterAmountEvent;
-import org.quantumbot.events.containers.BankEvent;
-import org.quantumbot.events.containers.EquipmentLoadout;
 import org.quantumbot.events.containers.InventoryInteractEvent;
 import org.quantumbot.events.ge.GEEvent;
 import org.quantumbot.events.interactions.InteractEvent;
@@ -19,7 +18,7 @@ import org.quester.questutil.HelperMethods;
 import java.util.HashMap;
 import java.util.List;
 
-public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
+public class DeathPlateauEvent extends BotEvent implements Logger {
 
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
@@ -83,14 +82,13 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
     private final Area EIGHTH_STAGE_AREA = new Area(2917, 3577, 2923, 3572);
     private final Area NINTH_STAGE_AREA = new Area(2814, 3562, 2821, 3558);
 
-    public QUEST_DEATH_PLATEAU(QuantumBot bot, HelperMethods helper) {
+    public DeathPlateauEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);
         this.helper = helper;
     }
 
     @Override
     public void onStart() {
-
         // Required items needed
         itemReq.put("Coins", 5000);
         itemReq.put("Bread", 10);
@@ -99,20 +97,17 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
         itemReq.put("Asgarnian ale", 1);
         itemReq.put("Premade blurb' sp.", 1);
         itemReq.put("Games necklace(1~8)", 1);
-
-        if (!helper.hasQuestItemsBeforeStarting(itemReq)){
-            // Load bank event and execute withdraw
-            try {
-                helper.getBankEvent(itemReq).execute();
-            } catch (InterruptedException e) {
-                info("Failed to execute bankevent onStart");
-                e.printStackTrace();
-            }
-        }
+        info("Started: " + Quest.DEATH_PLATEAU.name());
     }
 
     @Override
     public void step() throws InterruptedException {
+        if (!helper.hasQuestItemsBeforeStarting(itemReq) && !getBot().getQuests().isStarted(Quest.DEATH_PLATEAU)) {
+            // Load bank event and execute withdraw
+            helper.getBankEvent(itemReq).execute();
+            return;
+        }
+
         int result = getBot().getClient().getVarp(314);
 
         info("Quest stage: 314 = " + result);
@@ -125,7 +120,7 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                     info("Selecting: Ok");
                     if (new InteractEvent(getBot(), continueGambling, "Ok").executed())
                         sleepUntil(5000, () -> getBot().getDialogues().isPendingContinuation());
-                } else if (new DialogueEvent(getBot()).executed())
+                } else if (new DialogueEvent(getBot()).setInterruptCondition(() -> getBot().getDialogues().isPendingOption()).executed())
                     sleepUntil(2000, () -> !getBot().getDialogues().isPendingContinuation());
             } else if (getBot().getDialogues().isPendingOption()) {
                 info("Handling option");
@@ -143,15 +138,13 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                     new DialogueEvent(getBot(), QUEST_DIALOGUE_DEATH_PLAT).execute();
                 }
                 sleep(1000);
-            } else if (new EnterAmountEvent(getBot(), 100).executed()) {
-                info("Successfully entered amount.");
             } else {
                 info("No dialogue???");
             }
         } else {
             switch (result) {
                 case 0:
-                    //start
+                    // Start
                     if (helper.inArea(START_AREA)) {
                         if (helper.talkTo("Denulth"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
@@ -160,7 +153,7 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                     }
                     break;
                 case 10:
-                    //after accepting quest & now find eohric to talk about the guard
+                    // After accepting quest & now find eohric to talk about the guard
                     if (helper.inArea(SECOND_STAGE_AREA)) {
                         if (helper.talkTo("Eohric"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
@@ -169,7 +162,7 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                     }
                     break;
                 case 20:
-                    //head to the guard and ask for combination
+                    // Head to the guard and ask for combination
                     sleep(1000);
                     if (helper.inArea(THIRD_STAGE_PART_TWO_AREA)) {
                         if (helper.talkTo("Harold"))
@@ -182,7 +175,7 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                     }
                     break;
                 case 30:
-                    //head back to eohric after guard refuses to talk
+                    // Head back to eohric after guard refuses to talk
                     if (helper.inArea(SECOND_STAGE_AREA)) {
                         if (helper.talkTo("Eohric"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
@@ -191,7 +184,7 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                     }
                     break;
                 case 40:
-                    //head back to the guard after talking to eohric
+                    // Head back to the guard after talking to eohric
                     sleep(1000);
                     if (helper.inArea(THIRD_STAGE_PART_TWO_AREA)) {
                         if (helper.talkTo("Harold"))
@@ -204,14 +197,16 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                     }
                     break;
                 case 50:
-                    //offer him a drink & gamble
-                    //Widget gamblingScreen = getWidgets().getWidgetContainingText(99, "Harold rolls...", "Your roll...", "You win!", "You lose!");
+                    // Offer him a drink & gamble
                     Widget gamblingScreen = getBot().getWidgets().first(w -> w != null && w.isVisible() && w.getText() != null
                             && (w.getText().equals("Harold rolls...") || w.getText().equals("Your roll...") || w.getText().equals("You win!") || w.getText().equals("You lose!")));
 
-                    if (gamblingScreen != null && gamblingScreen.isVisible()) {
-                        //RS2Widget rollDice = getWidgets().getWidgetContainingText(99, "Roll Dice!");
-                        //RS2Widget continueGambling = getWidgets().getWidgetContainingText(99, "Continue...");
+                    Widget enterAmountScreen = getBot().getWidgets().first(w -> w != null && w.isVisible() && w.getText() != null && w.getText().equals("Enter amount:"));
+                    if (enterAmountScreen != null && enterAmountScreen.isVisible()) {
+                        if (new EnterAmountEvent(getBot(), 100).executed()) {
+                            info("Successfully entered amount.");
+                        }
+                    } else if (gamblingScreen != null && gamblingScreen.isVisible()) {
                         Widget rollDice = getBot().getWidgets().first(w -> w != null && w.isVisible() && w.getText() != null && w.getText().equals("Roll Dice!"));
                         Widget continueGambling = getBot().getWidgets().first(w -> w != null && w.isVisible() && w.getText() != null && w.getText().equals("Continue..."));
                         if (rollDice != null && rollDice.isVisible()) {
@@ -227,13 +222,17 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                     }
                     break;
                 case 55:
-                    //won the gambling & have IOU note
+                    // For more room for the combination unlock
+                    if (getBot().getInventory().contains("Coins"))
+                        helper.interactInventory("Coins", "Drop");
+
+                    // Won the gambling & have IOU note
                     if (getBot().getInventory().contains("Iou") && helper.interactInventory("Iou", "Read")) {
                         sleepUntil(5000, () -> getBot().getDialogues().isPendingContinuation());
                     }
                     break;
                 case 60:
-                    //have combination -> grab stone balls -> do combination
+                    // Have combination -> grab stone balls -> do combination
                     if (helper.inArea(FOURTH_STAGE_AREA)) {
                         if (shouldGrabBalls) {
                             if (grabStart == 3566 || getBot().getInventory().isFull())
@@ -268,7 +267,7 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                     }
                     break;
                 case 70:
-                    //talk to guard archer, saba, tenzing, dunstan, denulth, tenzing, denulth. in order.. | code is in reverse order depending on flags or items obtained.
+                    // Talk to guard archer, saba, tenzing, dunstan, denulth, tenzing, denulth. in order.. | code is in reverse order depending on flags or items obtained.
                     if (getBot().getInventory().contains("Secret way map")) {
                         if (helper.inArea(SEVENTH_STAGE_AREA)) {
                             if (helper.interactObject(o -> o != null && o.getName().equals("Door") && o.getTile().getX() == 2820, "Open"))
@@ -341,19 +340,20 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
                             if (helper.talkTo("Tenzing")) {
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             }
-                        } else { //if we have spiked boots our logic should return back here
+                        } else { // If we have spiked boots our logic should return back here
                             if (helper.inArea(SIXTH_STAGE_PART_TWO_AREA)) {
                                 if (helper.interactObject("Cave Exit", "Exit"))
                                     sleepUntil(7000, () -> helper.inArea(SIXTH_STAGE_AREA));
                             } else {
-                                helper.getWeb(SEVENTH_STAGE_AREA).execute();
+                                helper.getWeb(SEVENTH_STAGE_AREA).setInterruptCondition(() -> getBot().getDialogues().isPendingContinuation()).execute();
                             }
                         }
                     }
                     break;
                 case 80:
-                    //remove quest node
-                    this.setComplete();
+                    // End
+                    info("Finished: " + Quest.DEATH_PLATEAU.name());
+                    setComplete();
                     break;
             }
         }
@@ -365,7 +365,7 @@ public class QUEST_DEATH_PLATEAU extends BotEvent implements Logger {
         geEvent = new GEEvent(getBot());
         for (String key : hashMap.keySet()) {
             if (!getBot().getInventory().contains(key) && !getBot().getBank().contains(key)) {
-                if (key.contains("~")){
+                if (key.contains("~")) {
                     List<String> expanded = StringUtils.expandItemName(key);
                     key = StringUtils.expandItemName(key).get(expanded.size() - 1);
                     info("Expanded: " + key);
