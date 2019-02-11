@@ -6,27 +6,38 @@ import org.quantumbot.api.entities.*;
 import org.quantumbot.api.interfaces.Interactable;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
+import org.quantumbot.api.widgets.Widget;
+import org.quantumbot.enums.Skill;
+import org.quantumbot.enums.Tab;
+import org.quantumbot.enums.spells.MagicSpell;
+import org.quantumbot.enums.spells.StandardSpellbook;
 import org.quantumbot.events.DialogueEvent;
+import org.quantumbot.events.TabEvent;
 import org.quantumbot.events.WebWalkEvent;
 import org.quantumbot.events.containers.BankEvent;
 import org.quantumbot.events.containers.InventoryInteractEvent;
-import org.quantumbot.events.interactions.GroundItemInteractEvent;
-import org.quantumbot.events.interactions.InteractEvent;
-import org.quantumbot.events.interactions.NPCInteractEvent;
-import org.quantumbot.events.interactions.ObjectInteractEvent;
+import org.quantumbot.events.ge.GEEvent;
+import org.quantumbot.events.interactions.*;
+import org.quantumbot.utils.StringUtils;
 import org.quester.otherutil.ExchangeItem;
 import org.quester.otherutil.json.JsonObject;
 
+import java.awt.*;
 import java.io.*;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class HelperMethods {
 
     private QuantumBot context;
     private Map<String, ExchangeItem> priceCache = new HashMap<>();
+    private boolean grabbedItems;
+    private final Point DEFENSIVE_AUTOCAST_BUTTON_POSITION = new Point(650, 280);
+    private final Point REGULAR_AUTOCAST_BUTTON_POSITION = new Point(649, 303);
 
     public HelperMethods(QuantumBot context) {
         this.context = context;
@@ -73,6 +84,35 @@ public class HelperMethods {
 
        return be;
     }
+    
+    public GEEvent getBuyableEvent(HashMap<String, Integer> req){
+        GEEvent ge = new GEEvent(context);
+        int totalCoins = (int) (context.getInventory().getAmount("Coins")
+                        + context.getBank().getAmount("Coins"));
+        int expectedTotal = 0;
+        int originalPrice, price;
+
+        for (String key: req.keySet()) {
+            if (!getPriceCache().containsKey(key)) continue;
+            if (key.contains("~")) {
+                List<String> expanded = StringUtils.expandItemName(key);
+                key = StringUtils.expandItemName(key).get(expanded.size() - 1);
+                System.out.println("Expanded: " + key);
+            }
+            originalPrice = getPriceCache().get(key).getBuyAverage();
+            // Buy over 30% value for instant transactions
+            price = originalPrice > 0 ? (int) (originalPrice + (originalPrice * .30)) : 5000;
+            expectedTotal += price;
+
+            System.out.println("Adding " + key + " x" + req.get(key) + " to buy list");
+            ge.buy(req.get(key), price, key);
+        }
+
+        if (totalCoins < expectedTotal)
+            return null;
+        
+        return ge;
+    }
 
     public boolean talkTo(String npcName) throws InterruptedException {
         return new NPCInteractEvent(context, npcName, "Talk-to").executed();
@@ -118,17 +158,18 @@ public class HelperMethods {
         return myPlayer().getTile().equals(tile);
     }
 
-    public boolean hasQuestItemsBeforeStarting(HashMap<String, Integer> list) {
+    public boolean hasQuestItemsBeforeStarting(HashMap<String, Integer> list, boolean bank) {
         for (String key : list.keySet()) {
-            if (context.getInventory().getAmount(key) < list.get(key)) {
+            if (context.getBank().getAmount(key) < list.get(key) && bank)
                 return false;
-            }
+            if (context.getInventory().getAmount(key) < list.get(key))
+                return false;
         }
         return true;
     }
 
     public Map<String, ExchangeItem> getPriceCache() {
-        return priceCache;
+        return this.priceCache;
     }
 
     public void setPriceCache(boolean forceNewCache) {
@@ -225,4 +266,55 @@ public class HelperMethods {
         return cache;
     }
 
+    public boolean isGrabbedItems() {
+        return grabbedItems;
+    }
+
+    public void setGrabbedItems(boolean grabbedItems) {
+        this.grabbedItems = grabbedItems;
+    }
+
+    private boolean openAutocastPanel(boolean defensive) throws InterruptedException {
+        if (isAutocastPanelOpen()) return true;
+
+        if (!context.getTabs().isOpen(Tab.COMBAT_OPTIONS))
+            new TabEvent(context, Tab.COMBAT_OPTIONS).execute();
+
+        Optional<Widget> button = context.getWidgets().getAll().stream().filter(w -> w != null && w.isVisible()
+                && w.hasAction("Choose spell") && w.getX() == (defensive ? DEFENSIVE_AUTOCAST_BUTTON_POSITION.getX() : REGULAR_AUTOCAST_BUTTON_POSITION.getX())
+                && w.getY() == (defensive ? DEFENSIVE_AUTOCAST_BUTTON_POSITION.getY() : REGULAR_AUTOCAST_BUTTON_POSITION.getY())).findFirst();
+        if (button.isPresent() && button.get().isVisible()) {
+            return new InteractEvent(context, button.get(), "Choose spell").executed();
+        }
+        return false;
+    }
+
+    private boolean isAutocastPanelOpen() {
+        Widget panel = context.getWidgets().first(w -> w != null && w.getText() != null && w.getText().equals("Select a Combat Spell"));
+        return panel != null && panel.isVisible();
+    }
+
+    public boolean isAutocasting() {
+        return context.getClient().getVarp(108) != 0;
+    }
+
+    public boolean autocastSpell(StandardSpellbook spellbook, boolean defensive) throws InterruptedException {
+        if (isAutocastPanelOpen()) {
+            System.out.println("Autocast panel open!");
+            if (new WidgetInteractEvent(context, w -> w != null && w.isVisible() && w.hasAction(spellbook.getSpellName()), spellbook.getSpellName()).executed()) {
+                System.out.println("Autocast: " + spellbook.getSpellName());
+                return true;
+            }
+        } else {
+            System.out.println("Open autocast panel.");
+            openAutocastPanel(defensive);
+        }
+        return false;
+    }
+
+    public int ourHealthPercent() {
+        int currHealth = context.getClient().getSkillBoosted(Skill.HITPOINTS);
+        int maxHealth = context.getClient().getSkillReal(Skill.HITPOINTS);
+        return ((currHealth * 100) / maxHealth);
+    }
 }

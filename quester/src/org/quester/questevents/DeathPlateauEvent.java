@@ -4,25 +4,23 @@ import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.api.widgets.Widget;
+import org.quantumbot.enums.EquipmentSlot;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.EnterAmountEvent;
+import org.quantumbot.events.containers.EquipmentLoadout;
 import org.quantumbot.events.containers.InventoryInteractEvent;
-import org.quantumbot.events.ge.GEEvent;
 import org.quantumbot.events.interactions.InteractEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quantumbot.utils.StringUtils;
 import org.quester.questutil.HelperMethods;
 
 import java.util.HashMap;
-import java.util.List;
 
 public class DeathPlateauEvent extends BotEvent implements Logger {
 
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
-    private GEEvent geEvent;
     private int grabStart = 3561, index = 0;
     private boolean shouldGrabBalls = true, shouldTalkToGuard = true, shouldTalkToSaba = true, shouldTalkToDunstan = true, shouldFindPath = true;
     private final String[] QUEST_DIALOGUE_DEATH_PLAT = {"Do you have any quests for me?", "No but perhaps I could try and find one?", "I'm looking for the guard that was on last night.",
@@ -98,17 +96,32 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
         itemReq.put("Premade blurb' sp.", 1);
         itemReq.put("Games necklace(1~8)", 1);
         info("Started: " + Quest.DEATH_PLATEAU.name());
+        helper.setGrabbedItems(false);
     }
 
     @Override
     public void step() throws InterruptedException {
-        if (!helper.hasQuestItemsBeforeStarting(itemReq) && !getBot().getQuests().isStarted(Quest.DEATH_PLATEAU)) {
-            // Load bank event and execute withdraw
-            helper.getBankEvent(itemReq).execute();
+        int result = getBot().getClient().getVarp(314);
+
+        if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
+            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+                info("Bank event execute");
+                // Load bank event and execute withdraw
+                helper.getBankEvent(itemReq).execute();
+                helper.setGrabbedItems(true);
+            } else {
+                // Load buy event and execute buy orders
+                if (helper.getBuyableEvent(itemReq) == null) {
+                    info("Failed: Not enough coins. Setting complete and stopping.");
+                    setComplete();
+                    getBot().stop();
+                    return;
+                }
+                info("GE event execute");
+                helper.getBuyableEvent(itemReq).executed();
+            }
             return;
         }
-
-        int result = getBot().getClient().getVarp(314);
 
         info("Quest stage: 314 = " + result);
         if (getBot().getDialogues().inDialogue() || getBot().getDialogues().isPendingContinuation() || getBot().getDialogues().isPendingOption()) {
@@ -360,28 +373,8 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
         sleep(600);
     }
 
-    // Beginning concept to buy all quest buyables
-    private void loadBuyables(HashMap<String, Integer> hashMap) {
-        geEvent = new GEEvent(getBot());
-        for (String key : hashMap.keySet()) {
-            if (!getBot().getInventory().contains(key) && !getBot().getBank().contains(key)) {
-                if (key.contains("~")) {
-                    List<String> expanded = StringUtils.expandItemName(key);
-                    key = StringUtils.expandItemName(key).get(expanded.size() - 1);
-                    info("Expanded: " + key);
-                }
-                int originalPrice = helper.getPriceCache().get(key).getBuyAverage();
-                // Buy over 30% value for instant transactions
-                int price = (int) (originalPrice + (originalPrice * .30));
-                if (price > 0) {
-                    info("Adding " + key + " x" + hashMap.get(key) + " to buy list");
-                    geEvent.buy(hashMap.get(key), price, key);
-                } else {
-                    getBot().stop();
-                }
-            }
-        }
+    @Override
+    public void onFinish() {
+        helper.setGrabbedItems(false);
     }
-
-
 }
