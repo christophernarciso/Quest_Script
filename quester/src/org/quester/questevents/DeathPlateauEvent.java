@@ -106,9 +106,8 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
         if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
-                // Load bank event and execute withdraw
-                helper.getBankEvent(itemReq).execute();
-                helper.setGrabbedItems(true);
+                // Load bank event and execute withdraw;
+                helper.setGrabbedItems(helper.getBankEvent(itemReq).executed());
             } else {
                 // Load buy event and execute buy orders
                 if (helper.getBuyableEvent(itemReq) == null) {
@@ -124,7 +123,7 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
         }
 
         info("Quest stage: 314 = " + result);
-        if (getBot().getDialogues().inDialogue() || getBot().getDialogues().isPendingContinuation() || getBot().getDialogues().isPendingOption()) {
+        if (getBot().getDialogues().inDialogue()) {
             info("Dialogue");
             if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");

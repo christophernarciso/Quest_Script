@@ -9,7 +9,6 @@ import org.quantumbot.api.map.Tile;
 import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.Skill;
 import org.quantumbot.enums.Tab;
-import org.quantumbot.enums.spells.MagicSpell;
 import org.quantumbot.enums.spells.StandardSpellbook;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.TabEvent;
@@ -160,10 +159,13 @@ public class HelperMethods {
 
     public boolean hasQuestItemsBeforeStarting(HashMap<String, Integer> list, boolean bank) {
         for (String key : list.keySet()) {
-            if (context.getBank().getAmount(key) < list.get(key) && bank)
+            if ((int)context.getBank().getAmount(key) < list.get(key) && bank) {
+                System.out.println("Missing " + key + " x" + list.get(key) + " from the bank");
                 return false;
-            if (context.getInventory().getAmount(key) < list.get(key))
+            } else if ((int)context.getInventory().getAmount(key) < list.get(key) && !bank) {
+                System.out.println("Missing  " + key + " x" + list.get(key) + " from the inventory");
                 return false;
+            }
         }
         return true;
     }

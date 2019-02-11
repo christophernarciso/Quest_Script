@@ -24,17 +24,19 @@ public class QuestMain extends Script implements Logger{
 
     @Override
     public void onLoop() throws InterruptedException {
+        info("bank cached: " + getBot().getBank().isCached());
         // Cache the bank before executing events.
-        /*if (!getBot().getBank().isCached())
+        if (!getBot().getBank().isCached())
             new BankOpenEvent(getBot()).execute();
 
-        if (starterAccountMode)
+        /*if (starterAccountMode)
             new DeathPlateauEvent(getBot(), helperMethods)
                     .then(
                             new WitchHouseEvent(getBot(), helperMethods)
                     ).execute();
                     */
-        new WitchHouseEvent(getBot(), helperMethods).execute();
+        else if (starterAccountMode)
+            new WitchHouseEvent(getBot(), helperMethods).execute();
 
         sleep(1000);
     }

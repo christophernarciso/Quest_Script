@@ -1,6 +1,7 @@
 package org.quester.questevents;
 
 import org.quantumbot.api.QuantumBot;
+import org.quantumbot.api.entities.GameObject;
 import org.quantumbot.api.entities.NPC;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
@@ -46,7 +47,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
     private final Area BOSS_ROOM_AREA = new Area(2934, 3467, 2937, 3459);
     private final Area WITCH_TRAIL_AREA = new Area(2900, 3465, 2933, 3459);
 
-    private boolean readDiary, grabbedMagnet;
+    private boolean grabbedMagnet;
 
     public WitchHouseEvent(QuantumBot bot, HelperMethods helperMethods) {
         super(bot);
@@ -75,12 +76,12 @@ public class WitchHouseEvent extends BotEvent implements Logger {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw
-                helper.getBankEvent(itemReq).addReq(
+                helper.setGrabbedItems(helper.getBankEvent(itemReq).addReq(
                         new EquipmentLoadout()
                                 .set(EquipmentSlot.WEAPON, "Staff of fire")
                                 .set(EquipmentSlot.NECK, "Amulet of magic")
                                 .set(EquipmentSlot.HANDS, "Leather gloves")
-                ).execute();
+                ).executed());
             } else {
                 // Load buy event and execute buy orders
                 if (helper.getBuyableEvent(itemReq) == null) {
@@ -96,7 +97,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
         }
 
         info("Quest stage: 226 = " + result);
-        if (getBot().getDialogues().inDialogue() || getBot().getDialogues().isPendingContinuation() || getBot().getDialogues().isPendingOption()) {
+        if (getBot().getDialogues().inDialogue()) {
             info("Dialogue");
             if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
@@ -115,6 +116,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                 case 0:
                     // Start
                     if (helper.inArea(START_AREA)) {
+                        info("In start area");
                         if (helper.talkTo("Boy"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
@@ -122,30 +124,13 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                     }
                     break;
                 case 1:
-                    if (helper.inArea(HOUSE_MAIN_ROOM_AREA)){
-                        if (!readDiary){
-                            if (getBot().getWidgets().getRoot(49).isVisible()){
-                                info("Closing diary interface");
-                                if (new CloseInterfacesEvent(getBot()).executed()){
-                                    sleepUntil(3000, () -> !getBot().getWidgets().getRoot(49).isVisible());
-                                    readDiary = true;
-                                }
-                            } else if (getBot().getInventory().isFull()){
-                                info("Making inventory space for item: Diary");
-                                if (helper.interactInventory("Trout", "Eat")){
-                                    sleepUntil(2000, () -> !getBot().getInventory().isFull());
-                                }
-                            } else if (getBot().getInventory().contains("Diary")){
-                                info("Opening diary");
-                                if (helper.interactInventory("Diary", "Read")){
-                                    sleepUntil(3000, () -> getBot().getWidgets().getRoot(49).isVisible());
-                                }
-                            } else if (helper.interactGroundItem("Diary", "Take")){
-                                info("Grabbed diary");
-                                sleepUntil(3000, () -> getBot().getInventory().contains("Diary"));
-                            }
-                        } else if (!grabbedMagnet){
+                    if (helper.inArea(HOUSE_MAIN_ROOM_AREA) || helper.inArea(HOUSE_BASEMENT_ROOM_2_AREA)){
+                        info("In house main room area");
+                        if (!grabbedMagnet){
                             if (helper.inArea(HOUSE_BASEMENT_ROOM_2_AREA)){
+                                GameObject cupboard = getBot().getGameObjects().closest("Cupboard");
+                                if (cupboard == null) return;
+                                info("In house basement area");
                                 if (getBot().getInventory().isFull()){
                                     info("Making inventory space for item: Magnet");
                                     if (helper.interactInventory("Trout", "Eat")){
@@ -154,10 +139,10 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                                 } else if (getBot().getInventory().contains("Magnet")){
                                     info("Have magnet");
                                       grabbedMagnet = true;
-                                } else if (helper.interactObject("Cupboard", "Search")){
+                                } else if (cupboard.hasAction("Search") && helper.interactObject("Cupboard", "Search")){
                                     info("Searching cupboard");
                                     sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                                } else if (helper.interactObject("Cupboard", "Open")){
+                                } else if (cupboard.hasAction("Open") && helper.interactObject("Cupboard", "Open")){
                                     info("Opening cupboard");
                                     sleepGameCycle();
                                 }
@@ -166,6 +151,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                             }
                         }
                     } else if (helper.inArea(HOUSE_FRONT_DOOR_AREA)){
+                        info("In front door of house area");
                         if (getBot().getInventory().isFull()){
                             info("Making inventory space for item: Door key");
                             if (helper.interactInventory("Trout", "Eat")){
@@ -185,6 +171,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                     break;
                 case 2:
                     if (helper.inArea(HOUSE_TRAP_UNLOCK_ROOM_AREA)){
+                        info("In mouse trap room area");
                         NPC mouse = getBot().getNPCs().closest("Mouse");
                         if (mouse != null){
                             if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Magnet"))){
@@ -206,11 +193,14 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                     break;
                 case 3:
                     if (helper.inArea(BOSS_ROOM_AREA)){
+                        info("In boss area");
                         if (!helper.isAutocasting()){
+                            info("Need to autocast spell");
                             if (helper.autocastSpell(StandardSpellbook.FIRE_STRIKE, false)){
                                 sleepUntil(3000, () -> helper.isAutocasting());
                             }
                         } else {
+                            // Boss combat
                             if (getBot().getClient().getSkillBoosted(Skill.HITPOINTS) <= 7 || helper.ourHealthPercent() <= 50){
                                 new HealEvent(getBot()).executed();
                             } else if (helper.myPlayer().getInteracting() == null){
@@ -240,25 +230,30 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                             }
                         }
                     } else if (helper.inArea(FOUNTAIN_AREA)){
+                        info("In fountain area");
                         if (getBot().getInventory().contains("Key")){
                             getBot().getClient().walkHere(new Tile(2914, 3466, 0));
                         } else if (helper.interactObject("Fountain", "Check")){
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         }
                     } else {
+                        info("In witch compound");
                         NPC witch = getBot().getNPCs().closest("Nora T. Hagg");
                         int witchX = 0;
                         boolean left = false, right = false;
+
                         if (witch != null) {
                             witchX = witch.getTile().getX();
                             left = witch.getOrientation() == 512;
                             right = witch.getOrientation() == 1536;
                         }
+
                         int myX = helper.myPosition().getX();
                         int myY = helper.myPosition().getY();
+
                         if (helper.inArea(HOUSE_TRAP_UNLOCK_ROOM_AREA) || helper.inArea(TRAIL_START_AREA)) {
                             info("Walking to start of trail");
-                            getBot().getClient().walkHere(new Tile(2903, 3460, 0));
+                            helper.getWeb(new Tile(2903, 3460, 0)).execute();
                         } else if (myY <= 3460) {
                             info("Traverse bottom trail");
                             if (witchX > 0 || witch == null) {
@@ -277,7 +272,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                                         break;
                                     case 2925:
                                         if (witch == null || witchX <= 2923 && left)
-                                            getBot().getClient().walkHere(new Tile(2932, 3460, 0));
+                                            getBot().getClient().walkHere(new Tile(2932, 3466, 0));
                                         break;
                                 }
                             }
@@ -314,6 +309,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                                         }
                                     }
                                 } else {
+                                    info("No key traverse to fountain");
                                     switch (myX) {
                                         case 2932:
                                             if (witch == null || witchX <= 2927 && left)
@@ -360,13 +356,16 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                         NPC witch = getBot().getNPCs().closest("Nora T. Hagg");
                         int witchX = 0;
                         boolean left = false, right = false;
+
                         if (witch != null) {
                             witchX = witch.getTile().getX();
                             left = witch.getOrientation() == 512;
                             right = witch.getOrientation() == 1536;
                         }
+
                         int myX = helper.myPosition().getX();
                         info("Traverse bottom trail");
+
                         if (witchX > 0 || witch == null) {
                             switch (myX) {
                                 case 2929:
@@ -400,8 +399,8 @@ public class WitchHouseEvent extends BotEvent implements Logger {
             }
         }
 
-        // Help delay for walking : standard 600 ms
-        sleep(((result == 3 || result == 6) && helper.inArea(WITCH_TRAIL_AREA)) ? 2000 : 600);
+        // Help delay for walking : standard 800 ms
+        sleep(helper.myPlayer().isMoving() ? 3000 : 800);
     }
 
     @Override
