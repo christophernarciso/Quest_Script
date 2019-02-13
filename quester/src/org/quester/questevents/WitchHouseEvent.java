@@ -6,12 +6,10 @@ import org.quantumbot.api.entities.NPC;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.EquipmentSlot;
-import org.quantumbot.enums.Food;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
 import org.quantumbot.enums.spells.StandardSpellbook;
 import org.quantumbot.events.BotEvent;
-import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.events.containers.EquipmentLoadout;
@@ -26,7 +24,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
 
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
-    private final String[] QUEST_DIALOGUE_WITCH_HOUSE = {
+    private final String[] QUEST_DIALOGUE = {
             "What's the matter?", "Ok, I'll see what I can do."
     };
     private final String[] BOSSES = {
@@ -106,7 +104,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
             } else if (getBot().getDialogues().isPendingOption()) {
                 info("Handling option");
                 info("QUEST_DIALOGUE");
-                new DialogueEvent(getBot(), QUEST_DIALOGUE_WITCH_HOUSE).execute();
+                new DialogueEvent(getBot(), QUEST_DIALOGUE).execute();
                 sleep(1000);
             } else {
                 info("No dialogue???");

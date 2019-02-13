@@ -4,12 +4,10 @@ import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.api.widgets.Widget;
-import org.quantumbot.enums.EquipmentSlot;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.EnterAmountEvent;
-import org.quantumbot.events.containers.EquipmentLoadout;
 import org.quantumbot.events.containers.InventoryInteractEvent;
 import org.quantumbot.events.interactions.InteractEvent;
 import org.quantumbot.interfaces.Logger;
@@ -23,7 +21,7 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
     private HashMap<String, Integer> itemReq = new HashMap<>();
     private int grabStart = 3561, index = 0;
     private boolean shouldGrabBalls = true, shouldTalkToGuard = true, shouldTalkToSaba = true, shouldTalkToDunstan = true, shouldFindPath = true;
-    private final String[] QUEST_DIALOGUE_DEATH_PLAT = {"Do you have any quests for me?", "No but perhaps I could try and find one?", "I'm looking for the guard that was on last night.",
+    private final String[] QUEST_DIALOGUE = {"Do you have any quests for me?", "No but perhaps I could try and find one?", "I'm looking for the guard that was on last night.",
             "You're the guard that was on duty last night?", "Where were you when you last had the combination?", "OK, I'll get those for you."
     };
     private final int[] COMBINATION_ID = {3113, 3112, 3111, 3110, 3109};
@@ -147,7 +145,7 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
                     new DialogueEvent(getBot(), "Do you know of another way up Death Plateau?").execute();
                 } else {
                     info("QUEST_DIALOGUE");
-                    new DialogueEvent(getBot(), QUEST_DIALOGUE_DEATH_PLAT).execute();
+                    new DialogueEvent(getBot(), QUEST_DIALOGUE).execute();
                 }
                 sleep(1000);
             } else {
