@@ -99,7 +99,7 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
 
     @Override
     public void step() throws InterruptedException {
-        int result = getBot().getClient().getVarp(314);
+        int result = getBot().getVarps().getVarp(314);
 
         if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
@@ -114,7 +114,7 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
                     getBot().stop();
                     return;
                 }
-                info("GE event execute");
+                //info("GE event execute");
                 helper.getBuyableEvent(itemReq).executed();
             }
             return;

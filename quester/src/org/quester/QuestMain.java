@@ -18,7 +18,7 @@ public class QuestMain extends Script implements Logger{
     public void onStart() {
         helperMethods = new HelperMethods(getBot());
         info("Setting rsbuddy price cache");
-        helperMethods.setPriceCache(false);
+        helperMethods.setPriceCache(true);
         info("Cache size: " + helperMethods.getPriceCache().size());
     }
 
@@ -36,7 +36,7 @@ public class QuestMain extends Script implements Logger{
                     ).execute();
                     */
         else if (starterAccountMode)
-            new WitchHouseEvent(getBot(), helperMethods).execute();
+            new DeathPlateauEvent(getBot(), helperMethods).execute();
 
         sleep(1000);
     }

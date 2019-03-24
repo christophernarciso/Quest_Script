@@ -74,7 +74,7 @@ public class WaterfallEvent extends BotEvent implements Logger {
 
     @Override
     public void step() throws InterruptedException {
-        int result = getBot().getClient().getVarp(65);
+        int result = getBot().getVarps().getVarp(65);
 
         if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {

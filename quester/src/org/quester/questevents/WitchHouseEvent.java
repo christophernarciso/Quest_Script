@@ -63,12 +63,12 @@ public class WitchHouseEvent extends BotEvent implements Logger {
         itemReq.put("Leather gloves", 1);
         itemReq.put("Amulet of magic", 1);
         info("Started: " + Quest.WITCHS_HOUSE.name());
-        helper.setGrabbedItems(true);
+        helper.setGrabbedItems(false);
     }
 
     @Override
     public void step() throws InterruptedException {
-        int result = getBot().getClient().getVarp(226);
+        int result = getBot().getVarps().getVarp(226);
 
         if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {

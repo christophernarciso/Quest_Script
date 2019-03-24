@@ -86,25 +86,27 @@ public class HelperMethods {
     
     public GEEvent getBuyableEvent(HashMap<String, Integer> req){
         GEEvent ge = new GEEvent(context);
+        ge.setAlwaysBuy(true);
         int totalCoins = (int) (context.getInventory().getAmount("Coins")
                         + context.getBank().getAmount("Coins"));
         int expectedTotal = 0;
         int originalPrice, price;
 
         for (String key: req.keySet()) {
-            if (!getPriceCache().containsKey(key)) continue;
+            if (!getPriceCache().isEmpty() && !getPriceCache().containsKey(key)) continue;
+            int amt = req.get(key);
             if (key.contains("~")) {
                 List<String> expanded = StringUtils.expandItemName(key);
                 key = StringUtils.expandItemName(key).get(expanded.size() - 1);
                 System.out.println("Expanded: " + key);
             }
-            originalPrice = getPriceCache().get(key).getBuyAverage();
+            originalPrice = !getPriceCache().isEmpty() ? getPriceCache().get(key).getBuyAverage() : 0;
             // Buy over 30% value for instant transactions
             price = originalPrice > 0 ? (int) (originalPrice + (originalPrice * .30)) : 5000;
             expectedTotal += price;
 
-            System.out.println("Adding " + key + " x" + req.get(key) + " to buy list");
-            ge.buy(req.get(key), price, key);
+            System.out.println("Adding " + key + " to buy list");
+            ge.buy(amt, price, key);
         }
 
         if (totalCoins < expectedTotal)
@@ -160,10 +162,10 @@ public class HelperMethods {
     public boolean hasQuestItemsBeforeStarting(HashMap<String, Integer> list, boolean bank) {
         for (String key : list.keySet()) {
             if ((int)context.getBank().getAmount(key) < list.get(key) && bank) {
-                System.out.println("Missing " + key + " x" + list.get(key) + " from the bank");
+                //System.out.println("Missing " + key + " x" + list.get(key) + " from the bank");
                 return false;
             } else if ((int)context.getInventory().getAmount(key) < list.get(key) && !bank) {
-                System.out.println("Missing  " + key + " x" + list.get(key) + " from the inventory");
+                //System.out.println("Missing  " + key + " x" + list.get(key) + " from the inventory");
                 return false;
             }
         }
