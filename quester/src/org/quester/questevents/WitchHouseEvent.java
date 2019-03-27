@@ -1,15 +1,18 @@
 package org.quester.questevents;
 
+import com.sun.media.sound.SF2SoundbankReader;
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.entities.GameObject;
 import org.quantumbot.api.entities.NPC;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
+import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.EquipmentSlot;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
 import org.quantumbot.enums.spells.StandardSpellbook;
 import org.quantumbot.events.BotEvent;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.events.containers.EquipmentLoadout;
@@ -55,10 +58,11 @@ public class WitchHouseEvent extends BotEvent implements Logger {
     @Override
     public void onStart() {
         // Required items needed
+        itemReq.put("Games necklace(1~8)", 1);
         itemReq.put("Mind rune", 500);
         itemReq.put("Air rune", 1000);
         itemReq.put("Cheese", 3);
-        itemReq.put("Trout", 10);
+        itemReq.put("Lobster", 10);
         itemReq.put("Staff of fire", 1);
         itemReq.put("Leather gloves", 1);
         itemReq.put("Amulet of magic", 1);
@@ -69,17 +73,28 @@ public class WitchHouseEvent extends BotEvent implements Logger {
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(226);
+        if (result == 7){
+            setComplete();
+            return;
+        }
 
         if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw
-                helper.setGrabbedItems(helper.getBankEvent(itemReq).addReq(
-                        new EquipmentLoadout()
-                                .set(EquipmentSlot.WEAPON, "Staff of fire")
-                                .set(EquipmentSlot.NECK, "Amulet of magic")
-                                .set(EquipmentSlot.HANDS, "Leather gloves")
-                ).executed());
+                if (helper.getBankEvent(itemReq).executed()) {
+                    if (helper.closeBank()) {
+                        // Execute wear equipment.
+                        sleepUntil(5000, () -> !getBot().getBank().isOpen());
+                        String[] equipables = {"Amulet of magic", "Leather gloves", "Staff of fire"};
+                        for (String s : equipables) {
+                            if (helper.interactInventory(s, "Wear", "Wield"))
+                                sleep(1200);
+                        }
+                        // At this point we now have our items equipped.
+                        helper.setGrabbedItems(true);
+                    }
+                }
             } else {
                 // Load buy event and execute buy orders
                 if (helper.getBuyableEvent(itemReq) == null) {
@@ -362,16 +377,16 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                         }
 
                         int myX = helper.myPosition().getX();
-                        info("Traverse bottom trail");
+                        info("Traverse bottom trail with ball");
 
                         if (witchX > 0 || witch == null) {
                             switch (myX) {
                                 case 2929:
-                                    if (witch == null || witchX >= 2924 && left)
+                                    if (witch == null || witchX <= 2923 && left)
                                         getBot().getClient().walkHere(new Tile(2923, 3460, 0));
                                     break;
                                 case 2923:
-                                    if (witch == null || witchX >= 2916 && left || witchX > myX && right)
+                                    if (witch == null || witchX <= 2916 && left || witchX > myX && right)
                                         getBot().getClient().walkHere(new Tile(2915, 3460, 0));
                                     break;
                                 case 2915:

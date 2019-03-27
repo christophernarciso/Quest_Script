@@ -10,10 +10,12 @@ import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.Skill;
 import org.quantumbot.enums.Tab;
 import org.quantumbot.enums.spells.StandardSpellbook;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.TabEvent;
 import org.quantumbot.events.WebWalkEvent;
 import org.quantumbot.events.containers.BankEvent;
+import org.quantumbot.events.containers.BankOpenEvent;
 import org.quantumbot.events.containers.InventoryInteractEvent;
 import org.quantumbot.events.ge.GEEvent;
 import org.quantumbot.events.interactions.*;
@@ -83,10 +85,19 @@ public class HelperMethods {
 
        return be;
     }
+
+    public boolean closeBank() throws InterruptedException {
+        return !context.getBank().isOpen() || new CloseInterfacesEvent(context).executed();
+    }
+
+    public boolean openBank() throws InterruptedException {
+        return context.getBank().isOpen() || new BankOpenEvent(context).executed();
+    }
     
     public GEEvent getBuyableEvent(HashMap<String, Integer> req){
         GEEvent ge = new GEEvent(context);
         ge.setAlwaysBuy(true);
+        ge.setDepositAll(true);
         int totalCoins = (int) (context.getInventory().getAmount("Coins")
                         + context.getBank().getAmount("Coins"));
         int expectedTotal = 0;
@@ -132,7 +143,7 @@ public class HelperMethods {
     }
 
     public boolean interactObject(Predicate<GameObject> objectPredicate, String... actions) throws InterruptedException {
-        return new ObjectInteractEvent(context, objectPredicate, actions).executed();
+        return new ObjectInteractEvent(context, objectPredicate, actions).setWalk(false).executed();
     }
 
     public boolean interactGroundItem(String groundItemName, String... actions) throws InterruptedException {

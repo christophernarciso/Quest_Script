@@ -100,6 +100,10 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(314);
+        if (result == 80){
+            setComplete();
+            return;
+        }
 
         if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {

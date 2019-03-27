@@ -5,6 +5,7 @@ import org.quantumbot.client.script.ScriptManifest;
 import org.quantumbot.events.containers.BankOpenEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.DeathPlateauEvent;
+import org.quester.questevents.WaterfallEvent;
 import org.quester.questevents.WitchHouseEvent;
 import org.quester.questutil.HelperMethods;
 
@@ -28,15 +29,11 @@ public class QuestMain extends Script implements Logger{
         // Cache the bank before executing events.
         if (!getBot().getBank().isCached())
             new BankOpenEvent(getBot()).execute();
-
-        /*if (starterAccountMode)
-            new DeathPlateauEvent(getBot(), helperMethods)
-                    .then(
-                            new WitchHouseEvent(getBot(), helperMethods)
-                    ).execute();
-                    */
         else if (starterAccountMode)
-            new DeathPlateauEvent(getBot(), helperMethods).execute();
+            new DeathPlateauEvent(getBot(), helperMethods).then(
+                    new WitchHouseEvent(getBot(), helperMethods),
+                    new WaterfallEvent(getBot(), helperMethods)
+            ).executed();
 
         sleep(1000);
     }
