@@ -48,7 +48,8 @@ public class WaterfallEvent extends BotEvent implements Logger {
     );
     private final Area HOUSE_HADLEY_BOOK_ROOM = new Area(2516, 3431, 2520, 3423, 1);
 
-    private boolean talkedToHadley;
+
+    private boolean talkedToHadley, havePebble;
 
     public WaterfallEvent(QuantumBot bot, HelperMethods helperMethods) {
         super(bot);
@@ -68,6 +69,7 @@ public class WaterfallEvent extends BotEvent implements Logger {
         info("Started: " + Quest.WATERFALL_QUEST.name());
         helper.setGrabbedItems(true);
         talkedToHadley = false;
+        havePebble = false;
     }
 
     @Override
@@ -190,7 +192,7 @@ public class WaterfallEvent extends BotEvent implements Logger {
                         }
                     } else if (helper.inArea(HOUSE_HADLEY_AREA) || helper.inArea(HOUSE_HADLEY_BOOK_ROOM)) {
                         if (helper.inArea(HOUSE_HADLEY_BOOK_ROOM)) {
-                            if (getBot().getInventory().contains("Book on baxtorian")){
+                            if (getBot().getInventory().contains("Book on baxtorian")) {
                                 if (helper.interactInventory("Book on baxtorian", "Read"))
                                     sleep(1200);
                             } else if (helper.interactObject(o -> o != null && o.hasName("Bookcase")
@@ -204,8 +206,11 @@ public class WaterfallEvent extends BotEvent implements Logger {
                         helper.getWeb(HOUSE_HADLEY_AREA).execute();
                     }
                     break;
-                case 4:
-
+                case 3:
+                    if (!havePebble) {
+                        info("Walking to maze");
+                        helper.getWeb(new Tile(2539, 3155, 0)).execute();
+                    }
                     break;
                 case 7:
                     // End
