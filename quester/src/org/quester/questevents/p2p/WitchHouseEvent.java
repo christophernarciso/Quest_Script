@@ -1,21 +1,16 @@
-package org.quester.questevents;
+package org.quester.questevents.p2p;
 
-import com.sun.media.sound.SF2SoundbankReader;
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.entities.GameObject;
 import org.quantumbot.api.entities.NPC;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
-import org.quantumbot.api.widgets.Widget;
-import org.quantumbot.enums.EquipmentSlot;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
 import org.quantumbot.enums.spells.StandardSpellbook;
 import org.quantumbot.events.BotEvent;
-import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
-import org.quantumbot.events.containers.EquipmentLoadout;
 import org.quantumbot.events.interactions.InteractEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questutil.HelperMethods;

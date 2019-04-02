@@ -1,4 +1,4 @@
-package org.quester.questevents;
+package org.quester.questevents.p2p;
 
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
