@@ -67,7 +67,7 @@ public class WaterfallEvent extends BotEvent implements Logger {
         itemReq.put("Rope", 1);
         itemReq.put("Lobster", 10);
         info("Started: " + Quest.WATERFALL_QUEST.name());
-        helper.setGrabbedItems(true);
+        helper.setGrabbedItems(false);
         talkedToHadley = false;
         havePebble = false;
     }

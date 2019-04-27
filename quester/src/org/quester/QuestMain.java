@@ -4,6 +4,7 @@ import org.quantumbot.api.Script;
 import org.quantumbot.client.script.ScriptManifest;
 import org.quantumbot.events.containers.BankOpenEvent;
 import org.quantumbot.interfaces.Logger;
+import org.quester.questevents.f2p.*;
 import org.quester.questevents.p2p.DeathPlateauEvent;
 import org.quester.questevents.p2p.WaterfallEvent;
 import org.quester.questevents.p2p.WitchHouseEvent;
@@ -14,14 +15,11 @@ public class QuestMain extends Script implements Logger{
 
     private HelperMethods helperMethods;
     private boolean sevenQuestPointMode, allFreeToPlayMode;
-    private boolean starterAccountMode = true; // mode2,......
+    private boolean starterAccountMode = true, f2pMode = true; // mode2,......
 
     @Override
     public void onStart() {
         helperMethods = new HelperMethods(getBot());
-        info("Setting rsbuddy price cache");
-        helperMethods.setPriceCache(true);
-        info("Cache size: " + helperMethods.getPriceCache().size());
     }
 
     @Override
@@ -30,6 +28,16 @@ public class QuestMain extends Script implements Logger{
         // Cache the bank before executing events.
         if (!getBot().getBank().isCached())
             new BankOpenEvent(getBot()).execute();
+        else if (f2pMode)
+            new CookAssistantEvent(getBot(), helperMethods).then(
+                    new DoricEvent(getBot(),helperMethods),
+                    new ImpCatcherEvent(getBot(), helperMethods),
+                    new WitchPotionEvent(getBot(), helperMethods),
+                    new RuneMysteriesEvent(getBot(), helperMethods),
+                    new SheepShearerEvent(getBot(), helperMethods),
+                    new RestlessGhostEvent(getBot(), helperMethods),
+                    new ErnestTheChickenEvent(getBot(), helperMethods)
+            ).executed();
         else if (starterAccountMode) {
             new DeathPlateauEvent(getBot(), helperMethods).then(
                     new WitchHouseEvent(getBot(), helperMethods),

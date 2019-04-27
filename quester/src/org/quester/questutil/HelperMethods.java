@@ -20,22 +20,16 @@ import org.quantumbot.events.containers.InventoryInteractEvent;
 import org.quantumbot.events.ge.GEEvent;
 import org.quantumbot.events.interactions.*;
 import org.quantumbot.utils.StringUtils;
-import org.quester.otherutil.ExchangeItem;
-import org.quester.otherutil.json.JsonObject;
 
 import java.awt.*;
-import java.io.*;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 public class HelperMethods {
 
     private QuantumBot context;
-    private Map<String, ExchangeItem> priceCache = new HashMap<>();
     private boolean grabbedItems;
     private final Point DEFENSIVE_AUTOCAST_BUTTON_POSITION = new Point(650, 280);
     private final Point REGULAR_AUTOCAST_BUTTON_POSITION = new Point(649, 303);
@@ -104,16 +98,15 @@ public class HelperMethods {
         int originalPrice, price;
 
         for (String key: req.keySet()) {
-            if (!getPriceCache().isEmpty() && !getPriceCache().containsKey(key)) continue;
             int amt = req.get(key);
             if (key.contains("~")) {
                 List<String> expanded = StringUtils.expandItemName(key);
                 key = StringUtils.expandItemName(key).get(expanded.size() - 1);
                 System.out.println("Expanded: " + key);
             }
-            originalPrice = !getPriceCache().isEmpty() ? getPriceCache().get(key).getBuyAverage() : 0;
+            originalPrice = context.getPriceGrabber().getGEPrice(key);
             // Buy over 30% value for instant transactions
-            price = originalPrice > 0 ? (int) (originalPrice + (originalPrice * .30)) : 5000;
+            price = originalPrice > 500 ? (int) (originalPrice + (originalPrice * .30)) : 5000;
             expectedTotal += price;
 
             System.out.println("Adding " + key + " to buy list");
@@ -171,6 +164,9 @@ public class HelperMethods {
     }
 
     public boolean hasQuestItemsBeforeStarting(HashMap<String, Integer> list, boolean bank) {
+        if (list == null || list.isEmpty())
+            return true;
+
         for (String key : list.keySet()) {
             if ((int)context.getBank().getAmount(key) < list.get(key) && bank) {
                 //System.out.println("Missing " + key + " x" + list.get(key) + " from the bank");
@@ -181,104 +177,6 @@ public class HelperMethods {
             }
         }
         return true;
-    }
-
-    public Map<String, ExchangeItem> getPriceCache() {
-        return this.priceCache;
-    }
-
-    public void setPriceCache(boolean forceNewCache) {
-        this.priceCache = getJsonPriceCache(forceNewCache);
-    }
-
-    private Map<String, ExchangeItem> getJsonPriceCache(boolean forceNewCache) {
-        Map<String, ExchangeItem> cache = new HashMap<>();
-
-        try {
-            java.io.File cacheFile = new java.io.File(System.getProperty("user.home") + File.separator + "QuantumBot"
-                    + File.separator + "data" + File.separator + "quester" + File.separator + "summary.json");
-            BufferedReader jsonFile;
-            JsonObject priceJSON = null;
-
-            if (cacheFile.exists() && !forceNewCache) {
-                System.out.println("Loading from cached file");
-                jsonFile = new BufferedReader(new InputStreamReader(cacheFile.toURI().toURL().openStream()));
-                priceJSON = JsonObject.readFrom(jsonFile.readLine());
-            } else if (cacheFile.exists() && forceNewCache) {
-                System.out.println("File exists and now deleting.");
-                if (cacheFile.delete()) {
-                    System.out.println("Deleted file");
-                    URL url = new URL("https://rsbuddy.com/exchange/summary.json");
-                    System.out.println("Created new file in directory");
-
-                    BufferedInputStream in = null;
-                    FileOutputStream fout = null;
-                    try {
-                        in = new BufferedInputStream(url.openStream());
-                        fout = new FileOutputStream(cacheFile);
-
-                        final byte data[] = new byte[1024];
-                        int count;
-                        while ((count = in.read(data, 0, 1024)) != -1) {
-                            fout.write(data, 0, count);
-                        }
-                    } finally {
-                        if (in != null) {
-                            in.close();
-                        }
-                        if (fout != null) {
-                            fout.close();
-                        }
-                    }
-
-                    System.out.println("Loading from cached file");
-                    jsonFile = new BufferedReader(new InputStreamReader(cacheFile.toURI().toURL().openStream()));
-                    priceJSON = JsonObject.readFrom(jsonFile.readLine());
-                }
-            } else {
-                java.io.File directory = new java.io.File(System.getProperty("user.home") + File.separator + "QuantumBot"
-                        + File.separator + "data" + File.separator + "dragons" + File.separator);
-                if (directory.mkdirs() || directory.exists()) {
-                    URL url = new URL("https://rsbuddy.com/exchange/summary.json");
-                    System.out.println("Created new file in directory");
-
-                    BufferedInputStream in = null;
-                    FileOutputStream fout = null;
-                    try {
-                        in = new BufferedInputStream(url.openStream());
-                        fout = new FileOutputStream(cacheFile);
-
-                        final byte data[] = new byte[1024];
-                        int count;
-                        while ((count = in.read(data, 0, 1024)) != -1) {
-                            fout.write(data, 0, count);
-                        }
-                    } finally {
-                        if (in != null) {
-                            in.close();
-                        }
-                        if (fout != null) {
-                            fout.close();
-                        }
-                    }
-
-                    System.out.println("Loading from cached file");
-                    jsonFile = new BufferedReader(new InputStreamReader(cacheFile.toURI().toURL().openStream()));
-                    priceJSON = JsonObject.readFrom(jsonFile.readLine());
-                }
-            }
-
-            if (priceJSON != null) {
-                for (JsonObject.Member aPriceJSON : priceJSON) {
-                    JsonObject itemJSON = priceJSON.get(aPriceJSON.getName()).asObject();
-                    cache.put(itemJSON.get("name").asString(), new ExchangeItem(itemJSON.get("name").asString(), itemJSON.get("id").asInt(), itemJSON.get("sell_average").asInt(),
-                            itemJSON.get("overall_average").asInt(), itemJSON.get("buy_average").asInt()));
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("Failed to grab item price cache!");
-        }
-        return cache;
     }
 
     public boolean isGrabbedItems() {
