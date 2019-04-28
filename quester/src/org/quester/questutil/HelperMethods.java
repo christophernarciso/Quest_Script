@@ -131,6 +131,10 @@ public class HelperMethods {
         return new NPCInteractEvent(context, npcPredicate, actions).executed();
     }
 
+    public boolean useOnObject(String objectName, String useItemName) throws InterruptedException {
+        return new ObjectInteractEvent(context, objectName, "Use").setUse(useItemName).executed();
+    }
+
     public boolean interactObject(String objectName, String... actions) throws InterruptedException {
         return new ObjectInteractEvent(context, objectName, actions).executed();
     }
