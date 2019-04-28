@@ -134,14 +134,10 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
                     if (!getBot().getInventory().contains("Pressure gauge")) {
                         if (helper.inArea(FOUNTAIN_AREA)) {
                             if (getBot().getInventory().contains("Poisoned fish food")) {
-                                if (getBot().getInventory().isSelected(x -> x != null && x.getName().equals("Poisoned fish food"))) {
-                                    if (helper.interactObject("Fountain", "Use")) {
-                                        sleep(2000);
+                                if (helper.useOnObject("Fountain", "Poisoned fish food")){
+                                    sleep(2000);
                                         if (helper.interactObject("Fountain", "Use"))
                                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                                    }
-                                } else if (helper.interactInventory("Poisoned fish food", "Use")) {
-                                    sleepUntil(3000, () -> getBot().getInventory().isSelected(x -> x != null && x.getName().equals("Poisoned fish food")));
                                 }
                             } else if (new ItemCombineEvent(getBot(), "Poison", "Fish food").executed()) {
                                 sleepUntil(3000, () -> getBot().getInventory().contains("Poisoned fish food"));
