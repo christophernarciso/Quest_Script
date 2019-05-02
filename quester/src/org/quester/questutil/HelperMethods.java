@@ -120,6 +120,9 @@ public class HelperMethods {
     }
 
     public boolean talkTo(String npcName) throws InterruptedException {
+        if (context.getDialogues().inDialogue())
+            return true;
+
         return new NPCInteractEvent(context, npcName, "Talk-to").executed();
     }
 

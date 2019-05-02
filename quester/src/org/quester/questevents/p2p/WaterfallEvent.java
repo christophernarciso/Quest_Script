@@ -20,7 +20,7 @@ public class WaterfallEvent extends BotEvent implements Logger {
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
     private final String[] QUEST_DIALOGUE = {
-            "How can I help?", "Where else is worth visiting around here?"
+            "How can I help?", "Where else is worth visiting around here?", "Thanks then, goodbye."
     };
 
     private final Area START_AREA = new Area(2518, 3503, 2523, 3492);
@@ -47,9 +47,14 @@ public class WaterfallEvent extends BotEvent implements Logger {
             }
     );
     private final Area HOUSE_HADLEY_BOOK_ROOM = new Area(2516, 3431, 2520, 3423, 1);
+    private final Area DUNGEON_KEY_ROOM = new Area(2541, 9573, 2556, 9560);
+    private final Area DUNGEON_LOCKED_DOOR_ROOM = new Area(2512, 9575, 2518, 9573);
+    private final Area DUNGEON_PEBBLE_ROOM = new Area(2507, 9585, 2522, 9576);
+    private final Area GLARIAL_TOMBSTONE_AREA = new Area(2554, 3448, 2560, 3441);
+    private final Area GLARIAL_AMULET_ROOM = new Area(2525, 9848, 2535, 9839);
+    private final Area GLARIAL_URN_ROOM = new Area(2537, 9820, 2549, 9808);
 
-
-    private boolean talkedToHadley, havePebble;
+    private boolean talkedToHadley, gotAmulet, gotUrn;
 
     public WaterfallEvent(QuantumBot bot, HelperMethods helperMethods) {
         super(bot);
@@ -69,7 +74,7 @@ public class WaterfallEvent extends BotEvent implements Logger {
         info("Started: " + Quest.WATERFALL_QUEST.name());
         helper.setGrabbedItems(false);
         talkedToHadley = false;
-        havePebble = false;
+        gotAmulet = gotUrn = false;
     }
 
     @Override
@@ -121,9 +126,11 @@ public class WaterfallEvent extends BotEvent implements Logger {
             if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
                 if (new DialogueEvent(getBot()).setInterruptCondition(() -> getBot().getDialogues().isPendingOption()).executed())
-                    sleepUntil(2000, () -> !getBot().getDialogues().isPendingContinuation());
+                    sleep(1000);
+
+                if (helper.inArea(DUNGEON_PEBBLE_ROOM) && !getBot().getInventory().contains("Glarial's pebble") && result == 3)
+                    sleepUntil(6000, () -> getBot().getInventory().contains("Glarial's pebble"));
             } else if (getBot().getDialogues().isPendingOption()) {
-                info("Handling option");
                 info("QUEST_DIALOGUE");
                 new DialogueEvent(getBot(), QUEST_DIALOGUE).execute();
                 sleep(1000);
@@ -193,8 +200,11 @@ public class WaterfallEvent extends BotEvent implements Logger {
                     } else if (helper.inArea(HOUSE_HADLEY_AREA) || helper.inArea(HOUSE_HADLEY_BOOK_ROOM)) {
                         if (helper.inArea(HOUSE_HADLEY_BOOK_ROOM)) {
                             if (getBot().getInventory().contains("Book on baxtorian")) {
-                                if (helper.interactInventory("Book on baxtorian", "Read"))
+                                if (helper.interactInventory("Book on baxtorian", "Read")) {
                                     sleep(1200);
+                                    if (helper.interactInventory("Lobster", "Eat"))
+                                        sleep(1200);
+                                }
                             } else if (helper.interactObject(o -> o != null && o.hasName("Bookcase")
                                     && o.getTile().getY() == 3426, "Search")) {
                                 sleepUntil(3000, () -> getBot().getInventory().contains("Book on baxtorian"));
@@ -206,10 +216,75 @@ public class WaterfallEvent extends BotEvent implements Logger {
                         helper.getWeb(HOUSE_HADLEY_AREA).execute();
                     }
                     break;
+                case 4:
                 case 3:
-                    if (!havePebble) {
-                        info("Walking to maze");
-                        helper.getWeb(new Tile(2539, 3155, 0)).execute();
+                    if (!getBot().getInventory().contains("Glarial's pebble")) {
+                        if (!getBot().getInventory().contains("A key")) {
+                            if (helper.inArea(DUNGEON_KEY_ROOM)) {
+                                info("Grabbing key");
+                                if (helper.interactObject(o -> o != null && o.hasAction("Search")
+                                        && o.hasName("Crate") && o.getTile().equals(new Tile(2548, 9565, 0)), "Search")) {
+                                    sleepUntil(4000, () -> getBot().getInventory().contains("A key"));
+                                }
+                            } else {
+                                info("Walking to key room");
+                                helper.getWeb(new Tile(2548, 9566, 0)).setDestinationAccuracy(0).execute();
+                            }
+                        } else {
+                            if (helper.inArea(DUNGEON_PEBBLE_ROOM)) {
+                                info("Grabbing pebble");
+                                if (helper.talkTo("Golrie")) {
+                                    sleepUntil(4000, () -> getBot().getDialogues().inDialogue());
+                                }
+                            } else if (helper.inArea(DUNGEON_LOCKED_DOOR_ROOM)) {
+                                info("Unlocking door");
+                                if (helper.useOnObject("Door", "A key")) {
+                                    sleepUntil(3000, () -> helper.inArea(DUNGEON_PEBBLE_ROOM));
+                                }
+                            } else {
+                                info("Walking to locked door with key.");
+                                helper.getWeb(new Tile(2515, 9575, 0)).execute();
+                            }
+                        }
+                    } else if (!gotAmulet || !gotUrn) {
+                        if (helper.myPosition().getY() < 9000) {
+                            if (helper.inArea(GLARIAL_TOMBSTONE_AREA)) {
+                                info("At the tomb");
+                                if (helper.useOnObject("Glarial's tombstone", "Glarial's pebble"))
+                                    sleepUntil(10000, () -> !helper.inArea(GLARIAL_TOMBSTONE_AREA));
+                            } else {
+                                info("Walking to glarials tomb");
+                                helper.getWeb(GLARIAL_TOMBSTONE_AREA).execute();
+                            }
+                        } else {
+                            info("Inside dungeon");
+                            if (!gotAmulet){
+                                if (helper.inArea(GLARIAL_AMULET_ROOM)) {
+                                    info("Grabbing amulet");
+                                    if (helper.interactObject("Closed chest", "Open"))
+                                        sleep(1000);
+
+                                    if (helper.interactObject("Open chest", "Search")) {
+                                        gotAmulet = true;
+                                        sleepUntil(3000, () -> getBot().getInventory().contains("Glarial's amulet"));
+                                    }
+                                } else {
+                                    info("Walking to glarials amulet room");
+                                    helper.getWeb(GLARIAL_AMULET_ROOM).execute();
+                                }
+                            } else if (!gotUrn){
+                                if (helper.inArea(GLARIAL_URN_ROOM)) {
+                                    info("Grabbing urn");
+                                    if (helper.interactObject("Glarial's tomb", "Search")) {
+                                        gotUrn = true;
+                                        sleepUntil(4000, () -> getBot().getInventory().contains("Glarial's urn"));
+                                    }
+                                } else {
+                                    info("Walking to glarials urn room");
+                                    helper.getWeb(GLARIAL_URN_ROOM).execute();
+                                }
+                            }
+                        }
                     }
                     break;
                 case 7:

@@ -1,6 +1,7 @@
 package org.quester;
 
 import org.quantumbot.api.Script;
+import org.quantumbot.api.map.InstancedArea;
 import org.quantumbot.client.script.ScriptManifest;
 import org.quantumbot.events.containers.BankOpenEvent;
 import org.quantumbot.interfaces.Logger;
@@ -15,7 +16,7 @@ public class QuestMain extends Script implements Logger{
 
     private HelperMethods helperMethods;
     private boolean sevenQuestPointMode, allFreeToPlayMode;
-    private boolean starterAccountMode = true, f2pMode = true; // mode2,......
+    private boolean starterAccountMode = true, f2pMode = false; // mode2,......
 
     @Override
     public void onStart() {
