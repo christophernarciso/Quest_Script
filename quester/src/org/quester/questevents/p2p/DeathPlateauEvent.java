@@ -17,10 +17,6 @@ import java.util.HashMap;
 
 public class DeathPlateauEvent extends BotEvent implements Logger {
 
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
-    private int grabStart = 3561, index = 0;
-    private boolean shouldGrabBalls = true, shouldTalkToGuard = true, shouldTalkToSaba = true, shouldTalkToDunstan = true, shouldFindPath = true;
     private final String[] QUEST_DIALOGUE = {
             "Do you have any quests for me?", "No but perhaps I could try and find one?", "I'm looking for the guard that was on last night.",
             "You're the guard that was on duty last night?", "Where were you when you last had the combination?", "OK, I'll get those for you."
@@ -28,7 +24,6 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
     private final int[] COMBINATION_ID = {3113, 3112, 3111, 3110, 3109};
     private final Tile[] COMBINATION_TILES = {new Tile(2895, 3564, 0), new Tile(2895, 3563, 0), new Tile(2895, 3562, 0),
             new Tile(2894, 3562, 0), new Tile(2894, 3563, 0)};
-
     private final Area START_AREA = new Area(2891, 3532, 2900, 3526);
     private final Area SECOND_STAGE_AREA = new Area(
             new int[][]{
@@ -78,6 +73,10 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
     private final Area SEVENTH_STAGE_AREA = new Area(2818, 3557, 2822, 3553); //Tenzing
     private final Area EIGHTH_STAGE_AREA = new Area(2917, 3577, 2923, 3572);
     private final Area NINTH_STAGE_AREA = new Area(2814, 3562, 2821, 3558);
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
+    private int grabStart = 3561, index = 0;
+    private boolean shouldGrabBalls = true, shouldTalkToGuard = true, shouldTalkToSaba = true, shouldTalkToDunstan = true, shouldFindPath = true;
 
     public DeathPlateauEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);
@@ -101,12 +100,8 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(314);
-        if (result == 80){
-            setComplete();
-            return;
-        }
 
-        if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
+        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
@@ -164,6 +159,7 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
                         if (helper.talkTo("Denulth"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
+                        info("Walk to quest start");
                         helper.getWeb(START_AREA).execute();
                     }
                     break;

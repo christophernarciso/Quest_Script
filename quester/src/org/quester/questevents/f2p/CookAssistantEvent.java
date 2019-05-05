@@ -12,12 +12,12 @@ import java.util.HashMap;
 
 public class CookAssistantEvent extends BotEvent implements Logger {
 
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
     private final String[] QUEST_DIALOGUE = {
             "What's wrong?", "I'm always happy to help a cook in distress."
     };
     private final Area START_AREA = new Area(3205, 3217, 3212, 3211);
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
 
     public CookAssistantEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);
@@ -40,12 +40,7 @@ public class CookAssistantEvent extends BotEvent implements Logger {
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(29);
 
-        if (result == 2 && !getBot().getDialogues().inDialogue()){
-            setComplete();
-            return;
-        }
-
-        if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
+        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;

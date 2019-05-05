@@ -13,8 +13,6 @@ import java.util.HashMap;
 
 public class RestlessGhostEvent extends BotEvent implements Logger {
 
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
     private final String[] QUEST_DIALOGUE = {
             "I'm looking for a quest!", "Ok, let me help then.", "Father Aereck sent me to talk to you.",
             "He's got a ghost haunting his graveyard.", "Yep, now tell me what the problem is.",
@@ -24,6 +22,8 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
     private final Area URHNEY_AREA = new Area(3144, 3177, 3151, 3173);
     private final Area GHOST_AREA = new Area(3247, 3195, 3252, 3190);
     private final Area SKULL_AREA = new Area(3111, 9569, 3121, 9564);
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
     private boolean placeHead;
 
     public RestlessGhostEvent(QuantumBot bot, HelperMethods helper) {
@@ -47,12 +47,7 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(107);
 
-        if (result == 5 && !getBot().getDialogues().inDialogue()){
-            setComplete();
-            return;
-        }
-
-        if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
+        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
@@ -109,9 +104,9 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
                     if (getBot().getInventory().contains("Ghostspeak amulet")) {
                         if (helper.interactInventory("Ghostspeak amulet", "Wear"))
                             sleepUntil(3000, () -> !getBot().getInventory().contains("Ghostspeak amulet"));
-                    } else if (helper.inArea(GHOST_AREA)){
+                    } else if (helper.inArea(GHOST_AREA)) {
                         NPC ghost = getBot().getNPCs().first("Restless ghost");
-                        if (ghost != null){
+                        if (ghost != null) {
                             if (helper.getInteractEvent(ghost, "Talk-to").executed())
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         } else if (helper.interactObject("Coffin", "Open"))
@@ -121,7 +116,7 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
                     }
                     break;
                 case 3:
-                    if (helper.inArea(SKULL_AREA)){
+                    if (helper.inArea(SKULL_AREA)) {
                         if (helper.interactObject("Altar", "Search"))
                             sleepUntil(3000, () -> getBot().getInventory().contains("Ghost's skull"));
                     } else {
@@ -129,15 +124,15 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
                     }
                     break;
                 case 4:
-                    if (helper.inArea(GHOST_AREA)){
+                    if (helper.inArea(GHOST_AREA)) {
                         NPC ghost = getBot().getNPCs().first("Restless ghost");
                         if (placeHead) {
-                            if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Ghost's skull"))){
+                            if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Ghost's skull"))) {
                                 if (helper.interactObject("Coffin", "Use"))
                                     sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             } else if (helper.interactInventory("Ghost's skull", "Use"))
                                 sleepUntil(3000, () -> getBot().getInventory().isSelected(i -> i != null && i.hasName("Ghost's skull")));
-                        } else if (ghost != null){
+                        } else if (ghost != null) {
                             if (helper.getInteractEvent(ghost, "Talk-to").executed()) {
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                                 placeHead = true;

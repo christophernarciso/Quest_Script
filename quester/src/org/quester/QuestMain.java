@@ -1,22 +1,19 @@
 package org.quester;
 
 import org.quantumbot.api.Script;
-import org.quantumbot.api.map.InstancedArea;
 import org.quantumbot.client.script.ScriptManifest;
 import org.quantumbot.events.containers.BankOpenEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.f2p.*;
-import org.quester.questevents.p2p.DeathPlateauEvent;
-import org.quester.questevents.p2p.WaterfallEvent;
-import org.quester.questevents.p2p.WitchHouseEvent;
+import org.quester.questevents.p2p.*;
 import org.quester.questutil.HelperMethods;
 
 @ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Quest")
-public class QuestMain extends Script implements Logger{
+public class QuestMain extends Script implements Logger {
 
     private HelperMethods helperMethods;
     private boolean sevenQuestPointMode, allFreeToPlayMode;
-    private boolean starterAccountMode = true, f2pMode = false; // mode2,......
+    private boolean starterAccountMode = false, f2pMode = false, avasReady = true;
 
     @Override
     public void onStart() {
@@ -27,11 +24,11 @@ public class QuestMain extends Script implements Logger{
     public void onLoop() throws InterruptedException {
         info("bank cached: " + getBot().getBank().isCached());
         // Cache the bank before executing events.
-        if (!getBot().getBank().isCached())
+        if (!getBot().getBank().isCached() && helperMethods.myPosition().getY() < 9000)
             new BankOpenEvent(getBot()).execute();
         else if (f2pMode)
             new CookAssistantEvent(getBot(), helperMethods).then(
-                    new DoricEvent(getBot(),helperMethods),
+                    new DoricEvent(getBot(), helperMethods),
                     new ImpCatcherEvent(getBot(), helperMethods),
                     new WitchPotionEvent(getBot(), helperMethods),
                     new RuneMysteriesEvent(getBot(), helperMethods),
@@ -43,6 +40,13 @@ public class QuestMain extends Script implements Logger{
             new DeathPlateauEvent(getBot(), helperMethods).then(
                     new WitchHouseEvent(getBot(), helperMethods),
                     new WaterfallEvent(getBot(), helperMethods)
+            ).executed();
+        } else if (avasReady) {
+            new RestlessGhostEvent(getBot(), helperMethods).then(
+                    new ErnestTheChickenEvent(getBot(), helperMethods),
+                    new WaterfallEvent(getBot(), helperMethods),
+                    new PriestInPerilEvent(getBot(), helperMethods),
+                    new DwarfCannonEvent(getBot(), helperMethods)
             ).executed();
         }
         sleep(1000);

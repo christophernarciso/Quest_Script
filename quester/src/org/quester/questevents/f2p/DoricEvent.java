@@ -12,12 +12,12 @@ import java.util.HashMap;
 
 public class DoricEvent extends BotEvent implements Logger {
 
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
     private final String[] QUEST_DIALOGUE = {
             "I wanted to use your anvils.", "Yes, I will get you the materials."
     };
     private final Area START_AREA = new Area(2950, 3454, 2953, 3449);
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
 
     public DoricEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);
@@ -40,12 +40,7 @@ public class DoricEvent extends BotEvent implements Logger {
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(31);
 
-        if (result == 100 && !getBot().getDialogues().inDialogue()){
-            setComplete();
-            return;
-        }
-
-        if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
+        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;

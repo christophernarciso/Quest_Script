@@ -12,12 +12,12 @@ import java.util.HashMap;
 
 public class ImpCatcherEvent extends BotEvent implements Logger {
 
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
     private final String[] QUEST_DIALOGUE = {
             "Give me a quest please."
     };
     private final Area START_AREA = new Area(3101, 3165, 3106, 3159, 2);
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
 
     public ImpCatcherEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);
@@ -41,12 +41,7 @@ public class ImpCatcherEvent extends BotEvent implements Logger {
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(160);
 
-        if (result == 2 && !getBot().getDialogues().inDialogue()){
-            setComplete();
-            return;
-        }
-
-        if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
+        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;

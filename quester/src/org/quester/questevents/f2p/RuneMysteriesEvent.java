@@ -7,14 +7,11 @@ import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questutil.HelperMethods;
-import sun.audio.AudioData;
 
 import java.util.HashMap;
 
 public class RuneMysteriesEvent extends BotEvent implements Logger {
 
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
     private final String[] QUEST_DIALOGUE = {
             "Have you any quests for me?", "Sure, no problem.", "I'm looking for the head wizard.",
             "Ok, here you are.", "Yes, certainly.", "I have been sent here with a package for you."
@@ -34,6 +31,8 @@ public class RuneMysteriesEvent extends BotEvent implements Logger {
                     {3252, 3402}
             }
     );
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
 
     public RuneMysteriesEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);
@@ -56,12 +55,7 @@ public class RuneMysteriesEvent extends BotEvent implements Logger {
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(63);
 
-        if (result == 6 && !getBot().getDialogues().inDialogue()) {
-            setComplete();
-            return;
-        }
-
-        if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
+        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
@@ -117,7 +111,7 @@ public class RuneMysteriesEvent extends BotEvent implements Logger {
                     break;
                 case 4:
                 case 3:
-                    if (helper.inArea(AUBRY_AREA)){
+                    if (helper.inArea(AUBRY_AREA)) {
                         if (helper.talkTo("Aubury"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {

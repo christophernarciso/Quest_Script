@@ -13,12 +13,11 @@ import java.util.HashMap;
 // Work in progress
 public class MarksTheSpotEvent extends BotEvent implements Logger {
 
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
     private final String[] QUEST_DIALOGUE = {
             "I'm looking for a quest.", "Sounds good, what should I do?", "Okay, thanks Veos.",
     };
-
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
     private Tile MARK_TILE = new Tile(3230, 3209, 0);
 
     private Area START_AREA = new Area(
@@ -55,12 +54,7 @@ public class MarksTheSpotEvent extends BotEvent implements Logger {
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(173);
 
-        if (result == 21 && !getBot().getDialogues().inDialogue()) {
-            setComplete();
-            return;
-        }
-
-        if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
+        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;

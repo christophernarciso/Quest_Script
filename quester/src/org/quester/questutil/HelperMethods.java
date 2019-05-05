@@ -2,6 +2,7 @@ package org.quester.questutil;
 
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.containers.Item;
+import org.quantumbot.api.containers.ItemContainer;
 import org.quantumbot.api.entities.*;
 import org.quantumbot.api.interfaces.Interactable;
 import org.quantumbot.api.map.Area;
@@ -29,10 +30,10 @@ import java.util.function.Predicate;
 
 public class HelperMethods {
 
-    private QuantumBot context;
-    private boolean grabbedItems;
     private final Point DEFENSIVE_AUTOCAST_BUTTON_POSITION = new Point(650, 280);
     private final Point REGULAR_AUTOCAST_BUTTON_POSITION = new Point(649, 303);
+    private QuantumBot context;
+    private boolean grabbedItems;
 
     public HelperMethods(QuantumBot context) {
         this.context = context;
@@ -59,7 +60,10 @@ public class HelperMethods {
     }
 
     public WebWalkEvent getWeb(Tile tile) {
-        return new WebWalkEvent(context, tile);
+        WebWalkEvent w = new WebWalkEvent(context, tile);
+        w.setInterruptCondition(() -> context.getInventory().contains(item -> item != null && item.hasAction("Eat"))
+                && ourHealthPercent() <= 50);
+        return w;
     }
 
     public InteractEvent getInteractEvent(Interactable interactable, String... actions) {
@@ -70,14 +74,14 @@ public class HelperMethods {
         return options == null ? new DialogueEvent(context) : new DialogueEvent(context, options);
     }
 
-    public BankEvent getBankEvent(HashMap<String, Integer> req){
+    public BankEvent getBankEvent(HashMap<String, Integer> req) {
         BankEvent be = new BankEvent(context);
         be.stopIfUnmetReqs(true);
 
-        for (String key: req.keySet())
+        for (String key : req.keySet())
             be.addReq(req.get(key), req.get(key), key);
 
-       return be;
+        return be;
     }
 
     public boolean closeBank() throws InterruptedException {
@@ -87,17 +91,17 @@ public class HelperMethods {
     public boolean openBank() throws InterruptedException {
         return context.getBank().isOpen() || new BankOpenEvent(context).executed();
     }
-    
-    public GEEvent getBuyableEvent(HashMap<String, Integer> req){
+
+    public GEEvent getBuyableEvent(HashMap<String, Integer> req) {
         GEEvent ge = new GEEvent(context);
         ge.setAlwaysBuy(true);
         ge.setDepositAll(true);
         int totalCoins = (int) (context.getInventory().getAmount("Coins")
-                        + context.getBank().getAmount("Coins"));
+                + context.getBank().getAmount("Coins"));
         int expectedTotal = 0;
         int originalPrice, price;
 
-        for (String key: req.keySet()) {
+        for (String key : req.keySet()) {
             int amt = req.get(key);
             if (key.contains("~")) {
                 List<String> expanded = StringUtils.expandItemName(key);
@@ -115,7 +119,7 @@ public class HelperMethods {
 
         if (totalCoins < expectedTotal)
             return null;
-        
+
         return ge;
     }
 
@@ -136,6 +140,10 @@ public class HelperMethods {
 
     public boolean useOnObject(String objectName, String useItemName) throws InterruptedException {
         return new ObjectInteractEvent(context, objectName, "Use").setUse(useItemName).executed();
+    }
+
+    public boolean useOnObject(Predicate<GameObject> objectPredicate, String useItemName) throws InterruptedException {
+        return new ObjectInteractEvent(context, objectPredicate, "Use").setUse(useItemName).executed();
     }
 
     public boolean interactObject(String objectName, String... actions) throws InterruptedException {
@@ -175,10 +183,10 @@ public class HelperMethods {
             return true;
 
         for (String key : list.keySet()) {
-            if ((int)context.getBank().getAmount(key) < list.get(key) && bank) {
+            if ((int) context.getBank().getAmount(key) < list.get(key) && bank) {
                 //System.out.println("Missing " + key + " x" + list.get(key) + " from the bank");
                 return false;
-            } else if ((int)context.getInventory().getAmount(key) < list.get(key) && !bank) {
+            } else if ((int) context.getInventory().getAmount(key) < list.get(key) && !bank) {
                 //System.out.println("Missing  " + key + " x" + list.get(key) + " from the inventory");
                 return false;
             }
@@ -236,5 +244,18 @@ public class HelperMethods {
         int currHealth = context.getClient().getSkillBoosted(Skill.HITPOINTS);
         int maxHealth = context.getClient().getSkillReal(Skill.HITPOINTS);
         return ((currHealth * 100) / maxHealth);
+    }
+
+    public void walkHere(Tile pos) throws InterruptedException {
+        if (new InteractEvent(context, pos, "Walk here").executed())
+            System.out.println("Walk => " + pos.toString());
+    }
+
+    public int getQuantity(ItemContainer container, String name) {
+        return (int) container.getAmount(name);
+    }
+
+    public int getQuantity(ItemContainer container, int id) {
+        return (int) container.getAmount(id);
     }
 }

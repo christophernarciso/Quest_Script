@@ -12,12 +12,12 @@ import java.util.HashMap;
 
 public class SheepShearerEvent extends BotEvent implements Logger {
 
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
     private final String[] QUEST_DIALOGUE = {
             "I'm looking for a quest.", "Yes okay. I can do that."
     };
     private final Area START_AREA = new Area(3188, 3275, 3192, 3270);
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
 
     public SheepShearerEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);
@@ -38,12 +38,7 @@ public class SheepShearerEvent extends BotEvent implements Logger {
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(179);
 
-        if (result == 21 && !getBot().getDialogues().inDialogue()){
-            setComplete();
-            return;
-        }
-
-        if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
+        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;

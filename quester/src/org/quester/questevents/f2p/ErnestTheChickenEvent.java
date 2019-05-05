@@ -16,9 +16,6 @@ import java.util.List;
 
 public class ErnestTheChickenEvent extends BotEvent implements Logger {
 
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
-    private List<String> levers = new ArrayList<>();
     private final String[] QUEST_DIALOGUE = {
             "Aha, sounds like a quest. I'll help.", "I'm looking for a guy called Ernest.",
             "Change him back this instant!"
@@ -37,6 +34,9 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
     private final Area BASEMENT_4_5_AREA = new Area(3096, 9762, 3099, 9758);
     private final Area BASEMENT_7_8_AREA = new Area(3100, 9767, 3104, 9763);
     private final Area BASEMENT_OIL_CAN_AREA = new Area(3090, 9757, 3099, 9753);
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
+    private List<String> levers = new ArrayList<>();
     private boolean done;
 
     public ErnestTheChickenEvent(QuantumBot bot, HelperMethods helper) {
@@ -72,12 +72,7 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
         int result = getBot().getVarps().getVarp(32);
         int leverRes = getBot().getVarps().getVarp(33);
 
-        if (result == 3 && !getBot().getDialogues().inDialogue()) {
-            setComplete();
-            return;
-        }
-
-        if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
+        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
@@ -134,10 +129,10 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
                     if (!getBot().getInventory().contains("Pressure gauge")) {
                         if (helper.inArea(FOUNTAIN_AREA)) {
                             if (getBot().getInventory().contains("Poisoned fish food")) {
-                                if (helper.useOnObject("Fountain", "Poisoned fish food")){
+                                if (helper.useOnObject("Fountain", "Poisoned fish food")) {
                                     sleep(2000);
-                                        if (helper.interactObject("Fountain", "Use"))
-                                            sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                                    if (helper.interactObject("Fountain", "Use"))
+                                        sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                                 }
                             } else if (new ItemCombineEvent(getBot(), "Poison", "Fish food").executed()) {
                                 sleepUntil(3000, () -> getBot().getInventory().contains("Poisoned fish food"));
@@ -169,8 +164,8 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
                         } else {
                             handleDoorMaze(leverRes);
                         }
-                    } else if (done){
-                        if ((int)getBot().getInventory().getAmount("Coins") < 300){
+                    } else if (done) {
+                        if ((int) getBot().getInventory().getAmount("Coins") < 300) {
                             if (helper.inArea(PROFESSOR_AREA)) {
 
                                 if (helper.talkTo("Professor Oddenstein"))

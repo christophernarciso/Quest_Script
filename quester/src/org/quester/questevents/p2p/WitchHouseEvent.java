@@ -20,8 +20,6 @@ import java.util.HashMap;
 
 public class WitchHouseEvent extends BotEvent implements Logger {
 
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
     private final String[] QUEST_DIALOGUE = {
             "What's the matter?", "Ok, I'll see what I can do."
     };
@@ -42,7 +40,8 @@ public class WitchHouseEvent extends BotEvent implements Logger {
     private final Area BOSS_FRONT_DOOR_AREA = new Area(2933, 3467, 2933, 3459);
     private final Area BOSS_ROOM_AREA = new Area(2934, 3467, 2937, 3459);
     private final Area WITCH_TRAIL_AREA = new Area(2900, 3465, 2933, 3459);
-
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
     private boolean grabbedMagnet;
 
     public WitchHouseEvent(QuantumBot bot, HelperMethods helperMethods) {
@@ -68,12 +67,8 @@ public class WitchHouseEvent extends BotEvent implements Logger {
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(226);
-        if (result == 7){
-            setComplete();
-            return;
-        }
 
-        if (!helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
+        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw
@@ -132,25 +127,25 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                     }
                     break;
                 case 1:
-                    if (helper.inArea(HOUSE_MAIN_ROOM_AREA) || helper.inArea(HOUSE_BASEMENT_ROOM_2_AREA)){
+                    if (helper.inArea(HOUSE_MAIN_ROOM_AREA) || helper.inArea(HOUSE_BASEMENT_ROOM_2_AREA)) {
                         info("In house main room area");
-                        if (!grabbedMagnet){
-                            if (helper.inArea(HOUSE_BASEMENT_ROOM_2_AREA)){
+                        if (!grabbedMagnet) {
+                            if (helper.inArea(HOUSE_BASEMENT_ROOM_2_AREA)) {
                                 GameObject cupboard = getBot().getGameObjects().closest("Cupboard");
                                 if (cupboard == null) return;
                                 info("In house basement area");
-                                if (getBot().getInventory().isFull()){
+                                if (getBot().getInventory().isFull()) {
                                     info("Making inventory space for item: Magnet");
-                                    if (helper.interactInventory("Trout", "Eat")){
+                                    if (helper.interactInventory("Trout", "Eat")) {
                                         sleepUntil(2000, () -> !getBot().getInventory().isFull());
                                     }
-                                } else if (getBot().getInventory().contains("Magnet")){
+                                } else if (getBot().getInventory().contains("Magnet")) {
                                     info("Have magnet");
-                                      grabbedMagnet = true;
-                                } else if (cupboard.hasAction("Search") && helper.interactObject("Cupboard", "Search")){
+                                    grabbedMagnet = true;
+                                } else if (cupboard.hasAction("Search") && helper.interactObject("Cupboard", "Search")) {
                                     info("Searching cupboard");
                                     sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                                } else if (cupboard.hasAction("Open") && helper.interactObject("Cupboard", "Open")){
+                                } else if (cupboard.hasAction("Open") && helper.interactObject("Cupboard", "Open")) {
                                     info("Opening cupboard");
                                     sleepGameCycle();
                                 }
@@ -158,19 +153,19 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                                 helper.getWeb(HOUSE_BASEMENT_ROOM_2_AREA).execute();
                             }
                         }
-                    } else if (helper.inArea(HOUSE_FRONT_DOOR_AREA)){
+                    } else if (helper.inArea(HOUSE_FRONT_DOOR_AREA)) {
                         info("In front door of house area");
-                        if (getBot().getInventory().isFull()){
+                        if (getBot().getInventory().isFull()) {
                             info("Making inventory space for item: Door key");
-                            if (helper.interactInventory("Trout", "Eat")){
+                            if (helper.interactInventory("Trout", "Eat")) {
                                 sleepUntil(2000, () -> !getBot().getInventory().isFull());
                             }
-                        } else if (getBot().getInventory().contains("Door key")){
-                            if (helper.interactObject("Door", "Open")){
+                        } else if (getBot().getInventory().contains("Door key")) {
+                            if (helper.interactObject("Door", "Open")) {
                                 sleepUntil(5000, () -> helper.inArea(HOUSE_MAIN_ROOM_AREA));
                             }
                         } else if (helper.interactObject(o -> o.hasName("Potted plant") && o.hasAction("Look-under")
-                                , "Look-under")){
+                                , "Look-under")) {
                             sleepUntil(5000, () -> getBot().getDialogues().inDialogue());
                         }
                     } else {
@@ -178,20 +173,20 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                     }
                     break;
                 case 2:
-                    if (helper.inArea(HOUSE_TRAP_UNLOCK_ROOM_AREA)){
+                    if (helper.inArea(HOUSE_TRAP_UNLOCK_ROOM_AREA)) {
                         info("In mouse trap room area");
                         NPC mouse = getBot().getNPCs().closest("Mouse");
-                        if (mouse != null){
-                            if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Magnet"))){
-                                if (new InteractEvent(getBot(), mouse, "Use").executed()){
+                        if (mouse != null) {
+                            if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Magnet"))) {
+                                if (new InteractEvent(getBot(), mouse, "Use").executed()) {
                                     info("Used magnet on mouse");
                                     sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                                 }
-                            } else if (helper.interactInventory("Magnet", "Use")){
+                            } else if (helper.interactInventory("Magnet", "Use")) {
                                 info("Selected magnet");
                                 sleepUntil(3000, () -> getBot().getInventory().isSelected(i -> i != null && i.hasName("Magnet")));
                             }
-                        } else if (helper.interactInventory("Cheese", "Drop")){
+                        } else if (helper.interactInventory("Cheese", "Drop")) {
                             info("Dropped cheese to see mouse");
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         }
@@ -200,18 +195,18 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                     }
                     break;
                 case 3:
-                    if (helper.inArea(BOSS_ROOM_AREA)){
+                    if (helper.inArea(BOSS_ROOM_AREA)) {
                         info("In boss area");
-                        if (!helper.isAutocasting()){
+                        if (!helper.isAutocasting()) {
                             info("Need to autocast spell");
-                            if (helper.autocastSpell(StandardSpellbook.FIRE_STRIKE, false)){
+                            if (helper.autocastSpell(StandardSpellbook.FIRE_STRIKE, false)) {
                                 sleepUntil(3000, () -> helper.isAutocasting());
                             }
                         } else {
                             // Boss combat
-                            if (getBot().getClient().getSkillBoosted(Skill.HITPOINTS) <= 7 || helper.ourHealthPercent() <= 50){
+                            if (getBot().getClient().getSkillBoosted(Skill.HITPOINTS) <= 7 || helper.ourHealthPercent() <= 50) {
                                 new HealEvent(getBot()).executed();
-                            } else if (helper.myPlayer().getInteracting() == null){
+                            } else if (helper.myPlayer().getInteracting() == null) {
                                 NPC experiment = getBot().getNPCs().closest(n -> n != null && n.isAttackable() && Arrays.asList(BOSSES).contains(n.getName()));
                                 if (experiment != null) {
                                     int level = experiment.getCombatLevel();
@@ -222,7 +217,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                                                 sleepUntil(3000, () -> helper.myPlayer().isInteracting(experiment));
                                             }
                                         } else {
-                                            getBot().getClient().walkHere(new Tile(2937, 3463, 0));
+                                            helper.walkHere(new Tile(2937, 3463, 0));
                                         }
                                     } else {
                                         if (helper.atExactPosition(new Tile(2936, 3459, 0))) {
@@ -231,17 +226,17 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                                                 sleepUntil(3000, () -> helper.myPlayer().isInteracting(experiment));
                                             }
                                         } else {
-                                            getBot().getClient().walkHere(new Tile(2936, 3459, 0));
+                                            helper.walkHere(new Tile(2936, 3459, 0));
                                         }
                                     }
                                 }
                             }
                         }
-                    } else if (helper.inArea(FOUNTAIN_AREA)){
+                    } else if (helper.inArea(FOUNTAIN_AREA)) {
                         info("In fountain area");
-                        if (getBot().getInventory().contains("Key")){
-                            getBot().getClient().walkHere(new Tile(2914, 3466, 0));
-                        } else if (helper.interactObject("Fountain", "Check")){
+                        if (getBot().getInventory().contains("Key")) {
+                            helper.walkHere(new Tile(2914, 3466, 0));
+                        } else if (helper.interactObject("Fountain", "Check")) {
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         }
                     } else {
@@ -268,34 +263,34 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                                 switch (myX) {
                                     case 2903:
                                         if (witch == null || witchX >= 2908 && right)
-                                            getBot().getClient().walkHere(new Tile(2909, 3460, 0));
+                                            helper.walkHere(new Tile(2909, 3460, 0));
                                         break;
                                     case 2909:
                                         if (witch == null || witchX >= 2916 && right)
-                                            getBot().getClient().walkHere(new Tile(2917, 3460, 0));
+                                            helper.walkHere(new Tile(2917, 3460, 0));
                                         break;
                                     case 2917:
                                         if (witch == null || witchX >= 2924 && right)
-                                            getBot().getClient().walkHere(new Tile(2925, 3460, 0));
+                                            helper.walkHere(new Tile(2925, 3460, 0));
                                         break;
                                     case 2925:
                                         if (witch == null || witchX <= 2923 && left)
-                                            getBot().getClient().walkHere(new Tile(2932, 3466, 0));
+                                            helper.walkHere(new Tile(2932, 3466, 0));
                                         break;
                                 }
                             }
                         } else if (myY >= 3466) {
                             info("Traverse top trail");
                             if (witchX > 0 || witch == null) {
-                                if (getBot().getInventory().contains("Key")){
-                                    if (helper.inArea(BOSS_FRONT_DOOR_AREA)){
-                                        if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Key"))){
+                                if (getBot().getInventory().contains("Key")) {
+                                    if (helper.inArea(BOSS_FRONT_DOOR_AREA)) {
+                                        if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Key"))) {
                                             info("Entering boss room");
-                                            if (helper.interactObject("Door", "Use")){
+                                            if (helper.interactObject("Door", "Use")) {
                                                 info("Used key on boss door");
                                                 sleepUntil(3000, () -> helper.inArea(BOSS_ROOM_AREA));
                                             }
-                                        } else if (helper.interactInventory("Key", "Use")){
+                                        } else if (helper.interactInventory("Key", "Use")) {
                                             info("Selected key");
                                             sleepUntil(3000, () -> getBot().getInventory().isSelected(i -> i != null && i.hasName("Key")));
                                         }
@@ -304,15 +299,15 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                                         switch (myX) {
                                             case 2914:
                                                 if (witch == null || witchX < myX && left || witchX >= 2920 && right)
-                                                    getBot().getClient().walkHere(new Tile(2921, 3466, 0));
+                                                    helper.walkHere(new Tile(2921, 3466, 0));
                                                 break;
                                             case 2921:
                                                 if (witch == null || witchX < myX && left)
-                                                    getBot().getClient().walkHere(new Tile(2928, 3466, 0));
+                                                    helper.walkHere(new Tile(2928, 3466, 0));
                                                 break;
                                             case 2928:
                                                 if (witch == null || witchX < myX && left)
-                                                    getBot().getClient().walkHere(new Tile(2933, 3466, 0));
+                                                    helper.walkHere(new Tile(2933, 3466, 0));
                                                 break;
                                         }
                                     }
@@ -321,15 +316,15 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                                     switch (myX) {
                                         case 2932:
                                             if (witch == null || witchX <= 2927 && left)
-                                                getBot().getClient().walkHere(new Tile(2926, 3466, 0));
+                                                helper.walkHere(new Tile(2926, 3466, 0));
                                             break;
                                         case 2926:
                                             if (witch == null || witchX <= 2920 && left)
-                                                getBot().getClient().walkHere(new Tile(2919, 3466, 0));
+                                                helper.walkHere(new Tile(2919, 3466, 0));
                                             break;
                                         case 2919:
                                             if (witch == null || witchX <= 2913 && left || witchX > myX && right)
-                                                getBot().getClient().walkHere(new Tile(2910, 3468, 0));
+                                                helper.walkHere(new Tile(2910, 3468, 0));
                                             break;
                                     }
                                 }
@@ -338,29 +333,29 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                     }
                     break;
                 case 6:
-                    if (helper.inArea(START_AREA)){
+                    if (helper.inArea(START_AREA)) {
                         info("Talking to boy");
                         if (helper.talkTo("Boy"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                    } else if (helper.inArea(TRAIL_START_AREA)){
+                    } else if (helper.inArea(TRAIL_START_AREA)) {
                         info("Leaving witch compound");
-                        if (helper.interactObject("Door", "Open")){
+                        if (helper.interactObject("Door", "Open")) {
                             sleepUntil(3000, () -> helper.inArea(HOUSE_TRAP_UNLOCK_ROOM_AREA));
                         }
-                    } else if (helper.inArea(BOSS_ROOM_AREA)){
-                        if (getBot().getInventory().contains("Ball")){
+                    } else if (helper.inArea(BOSS_ROOM_AREA)) {
+                        if (getBot().getInventory().contains("Ball")) {
                             info("We have the ball!");
-                            if (helper.interactObject("Door", "Open")){
+                            if (helper.interactObject("Door", "Open")) {
                                 sleepUntil(3000, () -> helper.inArea(BOSS_FRONT_DOOR_AREA));
                             }
-                        } else if (helper.interactGroundItem("Ball", "Take")){
+                        } else if (helper.interactGroundItem("Ball", "Take")) {
                             info("Grabbed ball");
                             sleepUntil(3000, () -> getBot().getInventory().contains("Ball"));
                         }
-                    } else if (helper.inArea(BOSS_FRONT_DOOR_AREA)){
+                    } else if (helper.inArea(BOSS_FRONT_DOOR_AREA)) {
                         info("Walking to bottom traversal start");
-                        getBot().getClient().walkHere(new Tile(2929, 3460, 0));
-                    } else if (helper.inArea(WITCH_TRAIL_AREA)){
+                        helper.walkHere(new Tile(2929, 3460, 0));
+                    } else if (helper.inArea(WITCH_TRAIL_AREA)) {
                         NPC witch = getBot().getNPCs().closest("Nora T. Hagg");
                         int witchX = 0;
                         boolean left = false, right = false;
@@ -378,19 +373,19 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                             switch (myX) {
                                 case 2929:
                                     if (witch == null || witchX <= 2923 && left)
-                                        getBot().getClient().walkHere(new Tile(2923, 3460, 0));
+                                        helper.walkHere(new Tile(2923, 3460, 0));
                                     break;
                                 case 2923:
                                     if (witch == null || witchX <= 2916 && left || witchX > myX && right)
-                                        getBot().getClient().walkHere(new Tile(2915, 3460, 0));
+                                        helper.walkHere(new Tile(2915, 3460, 0));
                                     break;
                                 case 2915:
                                     if (witch == null || witchX > myX && right)
-                                        getBot().getClient().walkHere(new Tile(2907, 3460, 0));
+                                        helper.walkHere(new Tile(2907, 3460, 0));
                                     break;
                                 case 2907:
                                     if (witch == null || witchX > myX && right)
-                                        getBot().getClient().walkHere(new Tile(2901, 3465, 0));
+                                        helper.walkHere(new Tile(2901, 3465, 0));
                                     break;
                             }
                         }
