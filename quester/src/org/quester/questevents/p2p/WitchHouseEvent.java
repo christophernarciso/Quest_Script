@@ -40,9 +40,10 @@ public class WitchHouseEvent extends BotEvent implements Logger {
     private final Area BOSS_FRONT_DOOR_AREA = new Area(2933, 3467, 2933, 3459);
     private final Area BOSS_ROOM_AREA = new Area(2934, 3467, 2937, 3459);
     private final Area WITCH_TRAIL_AREA = new Area(2900, 3465, 2933, 3459);
+    private boolean grabbedMagnet;
+
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
-    private boolean grabbedMagnet;
 
     public WitchHouseEvent(QuantumBot bot, HelperMethods helperMethods) {
         super(bot);
@@ -57,7 +58,10 @@ public class WitchHouseEvent extends BotEvent implements Logger {
         itemReq.put("Air rune", 1000);
         itemReq.put("Cheese", 3);
         itemReq.put("Lobster", 10);
-        itemReq.put("Staff of fire", 1);
+        if (getBot().getClient().getSkillReal(Skill.MAGIC) >= 13)
+            itemReq.put("Staff of fire", 1);
+        else
+            itemReq.put("Staff of water", 1);
         itemReq.put("Leather gloves", 1);
         itemReq.put("Amulet of magic", 1);
         info("Started: " + Quest.WITCHS_HOUSE.name());
@@ -76,7 +80,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                     if (helper.closeBank()) {
                         // Execute wear equipment.
                         sleepUntil(5000, () -> !getBot().getBank().isOpen());
-                        String[] equipables = {"Amulet of magic", "Leather gloves", "Staff of fire"};
+                        String[] equipables = {"Amulet of magic", "Leather gloves", "Staff of fire", "Staff of water"};
                         for (String s : equipables) {
                             if (helper.interactInventory(s, "Wear", "Wield"))
                                 sleep(1200);
@@ -199,7 +203,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                         info("In boss area");
                         if (!helper.isAutocasting()) {
                             info("Need to autocast spell");
-                            if (helper.autocastSpell(StandardSpellbook.FIRE_STRIKE, false)) {
+                            if (helper.autocastSpell(getBot().getClient().getSkillReal(Skill.MAGIC) >= 13 ? StandardSpellbook.FIRE_STRIKE : StandardSpellbook.WATER_STRIKE, false)) {
                                 sleepUntil(3000, () -> helper.isAutocasting());
                             }
                         } else {

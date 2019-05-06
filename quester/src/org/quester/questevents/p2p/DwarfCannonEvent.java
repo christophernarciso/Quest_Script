@@ -1,6 +1,5 @@
 package org.quester.questevents.p2p;
 
-import com.sun.xml.internal.fastinfoset.tools.FI_DOM_Or_XML_DOM_SAX_SAXEvent;
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.entities.GameObject;
 import org.quantumbot.api.map.Area;
@@ -34,7 +33,6 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
 
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
-    private boolean found;
 
     public DwarfCannonEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);
@@ -49,7 +47,6 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
         itemReq.put("Camelot teleport", 2);
         info("Started: " + Quest.DWARF_CANNON.name());
         helper.setGrabbedItems(false);
-        found = false;
     }
 
     @Override
@@ -100,7 +97,7 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                     // Return to Captain Lawgof
                 case 3:
                     // Grab remains
-                    if (helper.inArea(REMAINS_AREA) && !getBot().getInventory().contains("Dwarf remains")){
+                    if (helper.inArea(REMAINS_AREA) && !getBot().getInventory().contains("Dwarf remains")) {
                         info("Grabbing dwarf remains");
                         if (helper.interactObject("Dwarf remains", "Take"))
                             sleepUntil(3000, () -> getBot().getInventory().contains("Dwarf remains"));
@@ -108,13 +105,15 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                     }
                 case 1:
                     // Repair fences
-                    if (getBot().getInventory().contains("Railing")){
+                    if (getBot().getInventory().contains("Railing")) {
                         int index = 0;
                         while (index < BROKEN_RAILING_LOCATIONS.length) {
                             int finalIndex = index, last = helper.getQuantity(getBot().getInventory(), "Railing");
                             Predicate<GameObject> gameObjectPredicate = o -> o != null && o.getTile().equals(BROKEN_RAILING_LOCATIONS[finalIndex]);
 
                             if (helper.interactObject(gameObjectPredicate, "Inspect")) {
+                                sleepUntil(2000, () -> getBot().getDialogues().inDialogue());
+
                                 if (getBot().getDialogues().isPendingContinuation())
                                     new DialogueEvent(getBot()).execute();
 
@@ -149,8 +148,8 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                     break;
                 case 4:
                     // Go find lost boy
-                    if (helper.myPosition().getY() < 9000){
-                        if (helper.inArea(DUNGEON_ENTRANCE_AREA)){
+                    if (helper.myPosition().getY() < 9000) {
+                        if (helper.inArea(DUNGEON_ENTRANCE_AREA)) {
                             if (helper.interactObject("Cave Entrance", "Enter"))
                                 sleepUntil(3000, () -> !helper.inArea(DUNGEON_ENTRANCE_AREA));
                         } else {
@@ -165,15 +164,14 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                     break;
                 case 5:
                     // Open Crate for lost boy
-                    if (helper.interactObject("Crate", "Search")){
+                    if (helper.interactObject("Crate", "Search")) {
                         sleepUntil(5000, () -> getBot().getDialogues().inDialogue());
-                        found = true;
                     }
                     break;
                 case 7:
                     Widget fix = getBot().getWidgets().first(widget -> widget != null && widget.getText() != null
                             && widget.getText().equals("Choose a tool to use on each of the moving parts."));
-                    if (fix != null && fix.isVisible()){
+                    if (fix != null && fix.isVisible()) {
                         Widget gear = getBot().getWidgets().first(widget -> widget != null && widget.getTooltip() != null
                                 && widget.getTooltip().equals("Gear"));
                         Widget safety = getBot().getWidgets().first(widget -> widget != null && widget.getTooltip() != null
@@ -186,7 +184,7 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                             info("Fixing gear.");
                             tool = getBot().getWidgets().get(409, 1, -1);
 
-                            if (tool != null && helper.getInteractEvent(tool, "Select").executed()){
+                            if (tool != null && helper.getInteractEvent(tool, "Select").executed()) {
                                 sleep(2000);
                                 if (helper.getInteractEvent(gear, "Gear").executed())
                                     sleep(3000);
@@ -196,7 +194,7 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                             info("Fixing safety switch.");
                             tool = getBot().getWidgets().get(409, 2, -1);
 
-                            if (tool != null && helper.getInteractEvent(tool, "Select").executed()){
+                            if (tool != null && helper.getInteractEvent(tool, "Select").executed()) {
                                 sleep(2000);
                                 if (helper.getInteractEvent(safety, "Safety switch").executed())
                                     sleep(3000);
@@ -206,7 +204,7 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                             info("Fixing spring.");
                             tool = getBot().getWidgets().get(409, 3, -1);
 
-                            if (tool != null && helper.getInteractEvent(tool, "Select").executed()){
+                            if (tool != null && helper.getInteractEvent(tool, "Select").executed()) {
                                 sleep(2000);
                                 if (helper.getInteractEvent(spring, "Spring").executed())
                                     sleep(3000);
@@ -216,7 +214,7 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     break;
                 case 9:
-                    if (helper.inArea(NOTES_AREA)){
+                    if (helper.inArea(NOTES_AREA)) {
                         if (helper.talkTo("Nulodion"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {

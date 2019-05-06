@@ -16,6 +16,7 @@ public class ImpCatcherEvent extends BotEvent implements Logger {
             "Give me a quest please."
     };
     private final Area START_AREA = new Area(3101, 3165, 3106, 3159, 2);
+
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
@@ -87,7 +88,7 @@ public class ImpCatcherEvent extends BotEvent implements Logger {
                     }
                     break;
 
-                case 100:
+                case 2:
                     // End
                     info("Finished: " + Quest.IMP_CATCHER.name());
                     setComplete();

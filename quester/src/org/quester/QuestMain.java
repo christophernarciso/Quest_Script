@@ -12,8 +12,7 @@ import org.quester.questutil.HelperMethods;
 public class QuestMain extends Script implements Logger {
 
     private HelperMethods helperMethods;
-    private boolean sevenQuestPointMode, allFreeToPlayMode;
-    private boolean starterAccountMode = false, f2pMode = false, avasReady = true;
+    private boolean starterAccountMode = true, allFreeToPlayMode = false, avasReady = true;
 
     @Override
     public void onStart() {
@@ -26,7 +25,7 @@ public class QuestMain extends Script implements Logger {
         // Cache the bank before executing events.
         if (!getBot().getBank().isCached() && helperMethods.myPosition().getY() < 9000)
             new BankOpenEvent(getBot()).execute();
-        else if (f2pMode)
+        else if (allFreeToPlayMode)
             new CookAssistantEvent(getBot(), helperMethods).then(
                     new DoricEvent(getBot(), helperMethods),
                     new ImpCatcherEvent(getBot(), helperMethods),
@@ -38,15 +37,19 @@ public class QuestMain extends Script implements Logger {
             ).executed();
         else if (starterAccountMode) {
             new DeathPlateauEvent(getBot(), helperMethods).then(
+                    new ImpCatcherEvent(getBot(), helperMethods),
+                    new WitchPotionEvent(getBot(), helperMethods),
                     new WitchHouseEvent(getBot(), helperMethods),
-                    new WaterfallEvent(getBot(), helperMethods)
+                    new WaterfallEvent(getBot(), helperMethods),
+                    new VampireSlayerEvent(getBot(), helperMethods)
             ).executed();
         } else if (avasReady) {
             new RestlessGhostEvent(getBot(), helperMethods).then(
                     new ErnestTheChickenEvent(getBot(), helperMethods),
                     new WaterfallEvent(getBot(), helperMethods),
                     new PriestInPerilEvent(getBot(), helperMethods),
-                    new DwarfCannonEvent(getBot(), helperMethods)
+                    new DwarfCannonEvent(getBot(), helperMethods),
+                    new PlagueCityEvent(getBot(), helperMethods)
             ).executed();
         }
         sleep(1000);

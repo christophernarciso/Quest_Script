@@ -31,6 +31,7 @@ public class RuneMysteriesEvent extends BotEvent implements Logger {
                     {3252, 3402}
             }
     );
+
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 

@@ -1,4 +1,4 @@
-package org.quester.questevents.f2p;
+package org.quester.questevents.p2p;
 
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
@@ -10,17 +10,17 @@ import org.quester.questutil.HelperMethods;
 
 import java.util.HashMap;
 
-public class CookAssistantEvent extends BotEvent implements Logger {
+public class BiohazardEvent extends BotEvent implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
-            "What's wrong?", "I'm always happy to help a cook in distress."
+            ""
     };
-    private final Area START_AREA = new Area(3205, 3217, 3212, 3211);
+    private final Area START_AREA = new Area(2590, 3338, 2594, 3334);
 
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public CookAssistantEvent(QuantumBot bot, HelperMethods helper) {
+    public BiohazardEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);
         this.helper = helper;
     }
@@ -28,18 +28,15 @@ public class CookAssistantEvent extends BotEvent implements Logger {
     @Override
     public void onStart() {
         // Required items needed
-        itemReq.put("Bucket of milk", 1);
-        itemReq.put("Pot of flour", 1);
-        itemReq.put("Egg", 1);
-        if (getBot().getClient().isMembers())
-            itemReq.put("Lumbridge teleport", 1);
-        info("Started: " + Quest.COOKS_ASSISTANT.name());
+        itemReq.put("Ardougne teleport", 3);
+
+        info("Started: " + Quest.BIOHAZARD.name());
         helper.setGrabbedItems(false);
     }
 
     @Override
     public void step() throws InterruptedException {
-        int result = getBot().getVarps().getVarp(29);
+        int result = getBot().getVarps().getVarp(68);
 
         if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
@@ -60,7 +57,7 @@ public class CookAssistantEvent extends BotEvent implements Logger {
             return;
         }
 
-        info("Quest stage: 29 = " + result);
+        info("Quest stage: 68 = " + result);
         if (getBot().getDialogues().inDialogue()) {
             info("Dialogue");
             if (getBot().getDialogues().isPendingContinuation()) {
@@ -80,16 +77,18 @@ public class CookAssistantEvent extends BotEvent implements Logger {
                 case 0:
                     // Start
                     if (helper.inArea(START_AREA)) {
-                        if (helper.talkTo("Cook"))
+                        info("Talking to Elena");
+                        if (helper.talkTo("Elena"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
+                        info("Walking to Elena");
                         helper.getWeb(START_AREA).execute();
                     }
                     break;
 
-                case 2:
+                case 30:
                     // End
-                    info("Finished: " + Quest.COOKS_ASSISTANT.name());
+                    info("Finished: " + Quest.BIOHAZARD.name());
                     setComplete();
                     break;
             }
@@ -102,3 +101,4 @@ public class CookAssistantEvent extends BotEvent implements Logger {
         helper.setGrabbedItems(false);
     }
 }
+

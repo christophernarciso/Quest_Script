@@ -16,6 +16,7 @@ public class SheepShearerEvent extends BotEvent implements Logger {
             "I'm looking for a quest.", "Yes okay. I can do that."
     };
     private final Area START_AREA = new Area(3188, 3275, 3192, 3270);
+
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 

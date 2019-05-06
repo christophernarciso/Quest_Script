@@ -68,10 +68,10 @@ public class WaterfallEvent extends BotEvent implements Logger {
     private final Area WATERFALL_DUNGEON_LOCKED_DOOR = new Area(2566, 9892, 2570, 9893);
     private final Area WATERFALL_DUNGEON_MIDDLE_ROOM = new Area(2564, 9901, 2570, 9894);
     private final Area WATERFALL_QUEST_END_ROOM = new Area(2559, 9918, 2572, 9902);
+    private boolean talkedToHadley, gotAmulet, gotUrn;
 
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
-    private boolean talkedToHadley, gotAmulet, gotUrn;
 
     public WaterfallEvent(QuantumBot bot, HelperMethods helperMethods) {
         super(bot);

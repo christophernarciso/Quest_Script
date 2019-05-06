@@ -16,8 +16,6 @@ public class MarksTheSpotEvent extends BotEvent implements Logger {
     private final String[] QUEST_DIALOGUE = {
             "I'm looking for a quest.", "Sounds good, what should I do?", "Okay, thanks Veos.",
     };
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
     private Tile MARK_TILE = new Tile(3230, 3209, 0);
 
     private Area START_AREA = new Area(
@@ -32,6 +30,9 @@ public class MarksTheSpotEvent extends BotEvent implements Logger {
                     {3226, 3243}
             }
     );
+
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
 
     public MarksTheSpotEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);

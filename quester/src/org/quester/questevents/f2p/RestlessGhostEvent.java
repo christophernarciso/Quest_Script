@@ -22,9 +22,10 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
     private final Area URHNEY_AREA = new Area(3144, 3177, 3151, 3173);
     private final Area GHOST_AREA = new Area(3247, 3195, 3252, 3190);
     private final Area SKULL_AREA = new Area(3111, 9569, 3121, 9564);
+    private boolean placeHead;
+
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
-    private boolean placeHead;
 
     public RestlessGhostEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);

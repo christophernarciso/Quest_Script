@@ -73,10 +73,11 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
     private final Area SEVENTH_STAGE_AREA = new Area(2818, 3557, 2822, 3553); //Tenzing
     private final Area EIGHTH_STAGE_AREA = new Area(2917, 3577, 2923, 3572);
     private final Area NINTH_STAGE_AREA = new Area(2814, 3562, 2821, 3558);
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
     private int grabStart = 3561, index = 0;
     private boolean shouldGrabBalls = true, shouldTalkToGuard = true, shouldTalkToSaba = true, shouldTalkToDunstan = true, shouldFindPath = true;
+
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
 
     public DeathPlateauEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);

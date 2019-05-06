@@ -16,6 +16,7 @@ public class DoricEvent extends BotEvent implements Logger {
             "I wanted to use your anvils.", "Yes, I will get you the materials."
     };
     private final Area START_AREA = new Area(2950, 3454, 2953, 3449);
+
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 

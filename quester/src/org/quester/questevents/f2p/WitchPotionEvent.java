@@ -21,6 +21,7 @@ public class WitchPotionEvent extends BotEvent implements Logger {
     private final Area START_AREA = new Area(2965, 3208, 2970, 3203);
     private final Area STOVE_AREA = new Area(2963, 3216, 2970, 3209);
     private final Area RAT_AREA = new Area(2953, 3205, 2960, 3202);
+
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 

@@ -109,7 +109,7 @@ public class HelperMethods {
                 System.out.println("Expanded: " + key);
             }
             originalPrice = context.getPriceGrabber().getGEPrice(key);
-            // Buy over 30% value for instant transactions
+            // Buy over 30% value for instant transactions > 500 : buy for 5,000 max
             price = originalPrice > 500 ? (int) (originalPrice + (originalPrice * .30)) : 5000;
             expectedTotal += price;
 
@@ -163,10 +163,16 @@ public class HelperMethods {
     }
 
     public boolean interactInventory(String itemName, String... actions) throws InterruptedException {
+        if (!context.getInventory().contains(itemName))
+            return false;
+
         return new InventoryInteractEvent(context, itemName, actions).executed();
     }
 
     public boolean interactInventory(Predicate<Item> itemPredicate, String... actions) throws InterruptedException {
+        if (!context.getInventory().contains(itemPredicate))
+            return false;
+
         return new InventoryInteractEvent(context, itemPredicate, actions).executed();
     }
 
@@ -223,7 +229,7 @@ public class HelperMethods {
     }
 
     public boolean isAutocasting() {
-        return context.getClient().getVarp(108) != 0;
+        return context.getVarps().getVarp(108) != 0;
     }
 
     public boolean autocastSpell(StandardSpellbook spellbook, boolean defensive) throws InterruptedException {

@@ -34,10 +34,11 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
     private final Area BASEMENT_4_5_AREA = new Area(3096, 9762, 3099, 9758);
     private final Area BASEMENT_7_8_AREA = new Area(3100, 9767, 3104, 9763);
     private final Area BASEMENT_OIL_CAN_AREA = new Area(3090, 9757, 3099, 9753);
-    private HelperMethods helper;
-    private HashMap<String, Integer> itemReq = new HashMap<>();
     private List<String> levers = new ArrayList<>();
     private boolean done;
+
+    private HelperMethods helper;
+    private HashMap<String, Integer> itemReq = new HashMap<>();
 
     public ErnestTheChickenEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);
