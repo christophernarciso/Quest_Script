@@ -131,12 +131,14 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
                         if (helper.inArea(FOUNTAIN_AREA)) {
                             if (getBot().getInventory().contains("Poisoned fish food")) {
                                 if (helper.useOnObject("Fountain", "Poisoned fish food")) {
-                                    sleep(2000);
-                                    if (helper.interactObject("Fountain", "Use"))
-                                        sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                                    sleepUntil(4000, () -> !getBot().getInventory().contains("Poisoned fish food"));
                                 }
-                            } else if (new ItemCombineEvent(getBot(), "Poison", "Fish food").executed()) {
-                                sleepUntil(3000, () -> getBot().getInventory().contains("Poisoned fish food"));
+                            } else if (getBot().getInventory().contains("Poison")) {
+                                if (new ItemCombineEvent(getBot(), "Poison", "Fish food").executed()) {
+                                    sleepUntil(3000, () -> getBot().getInventory().contains("Poisoned fish food"));
+                                }
+                            } else if (helper.interactObject("Fountain", "Search")) {
+                                sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             }
                         } else {
                             helper.getWeb(FOUNTAIN_AREA).execute();
@@ -161,7 +163,20 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
                         }
                     } else if (!getBot().getInventory().contains("Oil can") || helper.inArea(BASEMENT_OIL_CAN_AREA)) {
                         if (helper.myPosition().getY() < 9000) {
-                            helper.getWeb(BASEMENT_A_B_AREA).execute();
+                            if (helper.inArea(TUBE_AREA)) {
+                                info("Leaving tube room");
+                                if (helper.interactObject("Door", "Open")) {
+                                    sleepUntil(3000, () -> !helper.inArea(TUBE_AREA));
+                                }
+                            } else if (helper.inArea(BASEMENT_ENTRANCE_AREA)){
+                                info("going down the ladder");
+                                if (helper.interactObject("Ladder", "Climb-down")){
+                                    sleepUntil(4000, () -> helper.inArea(BASEMENT_OIL_CAN_AREA));
+                                }
+                            } else {
+                                info("Walking to basement entrance");
+                                helper.getWeb(BASEMENT_ENTRANCE_AREA).execute();
+                            }
                         } else {
                             handleDoorMaze(leverRes);
                         }

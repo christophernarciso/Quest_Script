@@ -28,7 +28,9 @@ public class BiohazardEvent extends BotEvent implements Logger {
     @Override
     public void onStart() {
         // Required items needed
-        itemReq.put("Ardougne teleport", 3);
+        itemReq.put("Ardougne teleport", 2);
+        itemReq.put("Falador teleport", 2);
+        itemReq.put("Varrock teleport", 2);
 
         info("Started: " + Quest.BIOHAZARD.name());
         helper.setGrabbedItems(false);

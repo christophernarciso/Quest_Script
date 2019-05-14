@@ -91,7 +91,7 @@ public class WaterfallEvent extends BotEvent implements Logger {
         info("Started: " + Quest.WATERFALL_QUEST.name());
         helper.setGrabbedItems(false);
         talkedToHadley = false;
-        gotAmulet = gotUrn = true;
+        gotAmulet = gotUrn = false;
     }
 
     @Override

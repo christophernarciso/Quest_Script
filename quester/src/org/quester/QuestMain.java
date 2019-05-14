@@ -12,7 +12,7 @@ import org.quester.questutil.HelperMethods;
 public class QuestMain extends Script implements Logger {
 
     private HelperMethods helperMethods;
-    private boolean starterAccountMode = true, allFreeToPlayMode = false, avasReady = true;
+    private boolean starterAccountMode = true, allFreeToPlayMode = true, avasReady = true;
 
     @Override
     public void onStart() {
@@ -25,7 +25,7 @@ public class QuestMain extends Script implements Logger {
         // Cache the bank before executing events.
         if (!getBot().getBank().isCached() && helperMethods.myPosition().getY() < 9000)
             new BankOpenEvent(getBot()).execute();
-        else if (allFreeToPlayMode)
+        else if (allFreeToPlayMode) {
             new CookAssistantEvent(getBot(), helperMethods).then(
                     new DoricEvent(getBot(), helperMethods),
                     new ImpCatcherEvent(getBot(), helperMethods),
@@ -35,7 +35,8 @@ public class QuestMain extends Script implements Logger {
                     new RestlessGhostEvent(getBot(), helperMethods),
                     new ErnestTheChickenEvent(getBot(), helperMethods)
             ).executed();
-        else if (starterAccountMode) {
+            allFreeToPlayMode = false;
+        }else if (starterAccountMode) {
             new DeathPlateauEvent(getBot(), helperMethods).then(
                     new ImpCatcherEvent(getBot(), helperMethods),
                     new WitchPotionEvent(getBot(), helperMethods),
@@ -43,6 +44,7 @@ public class QuestMain extends Script implements Logger {
                     new WaterfallEvent(getBot(), helperMethods),
                     new VampireSlayerEvent(getBot(), helperMethods)
             ).executed();
+            starterAccountMode = false;
         } else if (avasReady) {
             new RestlessGhostEvent(getBot(), helperMethods).then(
                     new ErnestTheChickenEvent(getBot(), helperMethods),
@@ -51,6 +53,9 @@ public class QuestMain extends Script implements Logger {
                     new DwarfCannonEvent(getBot(), helperMethods),
                     new PlagueCityEvent(getBot(), helperMethods)
             ).executed();
+            avasReady = false;
+        } else {
+            getBot().stop();
         }
         sleep(1000);
     }

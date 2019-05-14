@@ -135,6 +135,7 @@ public class VampireSlayerEvent extends BotEvent implements Logger {
                                 info("Going downstairs");
                                 sleepUntil(7000, () -> helper.myPosition().getY() > 9000);
                             }
+                            sleepGameCycle();
                         } else {
                             info("Walking to battle entrance");
                             helper.getWeb(VAMPIRE_ROOM_ENTRANCE_AREA).execute();
@@ -155,6 +156,11 @@ public class VampireSlayerEvent extends BotEvent implements Logger {
                     break;
 
                 case 3:
+                    if (helper.interactObject("Stairs", "Walk-Up")) {
+                        info("Going upstairs");
+                        sleepUntil(7000, () -> helper.myPosition().getY() < 9000);
+                    }
+
                     // End
                     info("Finished: " + Quest.VAMPIRE_SLAYER.name());
                     setComplete();

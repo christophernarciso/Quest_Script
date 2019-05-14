@@ -110,7 +110,7 @@ public class HelperMethods {
             }
             originalPrice = context.getPriceGrabber().getGEPrice(key);
             // Buy over 30% value for instant transactions > 500 : buy for 5,000 max
-            price = originalPrice > 500 ? (int) (originalPrice + (originalPrice * .30)) : 5000;
+            price = originalPrice > 1500 ? (int) (originalPrice + (originalPrice * .30)) : 5000;
             expectedTotal += price;
 
             System.out.println("Adding " + key + " to buy list");
@@ -189,6 +189,9 @@ public class HelperMethods {
             return true;
 
         for (String key : list.keySet()) {
+            if (context.getEquipment().contains(key))
+                continue;
+
             if ((int) context.getBank().getAmount(key) < list.get(key) && bank) {
                 //System.out.println("Missing " + key + " x" + list.get(key) + " from the bank");
                 return false;
