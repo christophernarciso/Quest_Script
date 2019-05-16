@@ -163,6 +163,9 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                     }
                     break;
                 case 5:
+                    info("Walking to lost boy");
+                    helper.getWeb(new Tile(2571, 9851, 0)).execute();
+                    sleepGameCycle();
                     // Open Crate for lost boy
                     if (helper.interactObject("Crate", "Search")) {
                         sleepUntil(5000, () -> getBot().getDialogues().inDialogue());

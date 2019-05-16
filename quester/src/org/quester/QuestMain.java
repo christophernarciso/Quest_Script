@@ -50,8 +50,8 @@ public class QuestMain extends Script implements Logger {
                     new ErnestTheChickenEvent(getBot(), helperMethods),
                     new WaterfallEvent(getBot(), helperMethods),
                     new PriestInPerilEvent(getBot(), helperMethods),
-                    new DwarfCannonEvent(getBot(), helperMethods),
-                    new PlagueCityEvent(getBot(), helperMethods)
+                    new DwarfCannonEvent(getBot(), helperMethods)
+                    //new PlagueCityEvent(getBot(), helperMethods)
             ).executed();
             avasReady = false;
         } else {

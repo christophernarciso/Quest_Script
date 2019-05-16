@@ -290,17 +290,23 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
                     if (helper.inArea(TEMPLE_TOP_FLOOR_AREA)) {
                         if (getBot().getInventory().contains("Blessed water")) {
                             if (helper.inArea(TEMPLE_TOP_CELL_AREA)) {
+                                info("Leaving cell area");
                                 if (helper.interactObject("Cell door", "Open"))
                                     sleepUntil(4000, () -> !helper.inArea(TEMPLE_TOP_CELL_AREA));
-                            } else if (helper.useOnObject("Coffin", "Blessed water"))
+                            } else if (helper.useOnObject("Coffin", "Blessed water")) {
+                                info("Using bucket on coffin");
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                            }
                         } else if (helper.inArea(TEMPLE_TOP_CELL_AREA)) {
                             info("Talk to Drezel");
                             if (helper.talkTo("Drezel"))
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                        } else if (helper.interactObject("Cell door", "Open"))
+                        } else if (helper.interactObject("Cell door", "Open")) {
+                            info("Opening cell door");
                             sleepUntil(4000, () -> helper.inArea(TEMPLE_TOP_CELL_AREA));
+                        }
                     }
+                    break;
                 case 8:
                     if (helper.inArea(TEMPLE_TOP_CELL_AREA)) {
                         if (helper.interactObject("Cell door", "Open"))
