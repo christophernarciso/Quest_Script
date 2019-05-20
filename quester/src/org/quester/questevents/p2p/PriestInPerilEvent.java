@@ -337,7 +337,13 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
                         new BankEvent(getBot()).addReq(1, 28, "Pure essence").execute();
                     }
                     break;
+                case 61:
                 case 60:
+                    sleepGameCycle();
+                    info("Talk to Drezel");
+                    if (helper.talkTo("Drezel"))
+                        sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+
                     // End
                     info("Finished: " + Quest.PRIEST_IN_PERIL.name());
                     setComplete();

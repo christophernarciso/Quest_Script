@@ -5,8 +5,7 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
-import org.quantumbot.events.containers.DepositEvent;
-import org.quantumbot.events.interactions.WidgetInteractEvent;
+import org.quantumbot.events.containers.EquipmentInteractEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questutil.HelperMethods;
 
@@ -15,9 +14,13 @@ import java.util.HashMap;
 public class AnimalMagnetismEvent extends BotEvent implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
-            ""
+            "I'm here about a quest.", "Okay, you need it more that I do, I suppose.",
+
     };
     private final Area START_AREA = new Area(3091, 3363, 3096, 3354);
+    private final Area UNDEAD_FARM_AREA = new Area(3626, 3527, 3630, 3524);
+    private final Area CRONE_AREA = new Area(3460, 3560, 3463, 3556);
+    private boolean talkToHusband;
 
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
@@ -45,6 +48,7 @@ public class AnimalMagnetismEvent extends BotEvent implements Logger {
 
         info("Started: " + Quest.ANIMAL_MAGNETISM.name());
         helper.setGrabbedItems(false);
+        talkToHusband = false;
     }
 
     @Override
@@ -56,24 +60,16 @@ public class AnimalMagnetismEvent extends BotEvent implements Logger {
                 info("Bank event execute");
                 // Load bank event and execute withdraw
                 if (helper.getBankEvent(itemReq).executed()) {
-                    sleep(1000);
-                    if (helper.openBank()) {
-                        // Execute deposit equipment.
-                        String[] deposits = {"Earth rune", "Water rune", "Air rune"};
-                        for (String s : deposits) {
-                            if (new DepositEvent(getBot(), s, Integer.MAX_VALUE).executed())
+                    if (helper.closeBank()) {
+                        // Execute wear equipment.
+                        sleepUntil(5000, () -> !getBot().getBank().isOpen());
+                        String[] equipables = {"Ghostspeak amulet"};
+                        for (String s : equipables) {
+                            if (helper.interactInventory(s, "Wear", "Wield"))
                                 sleep(1200);
                         }
-
-                        sleep(700);
-
-                        // Make sure we deposit worn items.
-                        new WidgetInteractEvent(getBot(), w -> w != null && w.isVisible()
-                                && w.hasAction("Deposit worn items")).executed();
-
-                        // At this point we now have our items.
+                        // At this point we now have our items equipped.
                         helper.setGrabbedItems(true);
-                        sleep(700);
                     }
                 }
             } else {
@@ -110,16 +106,71 @@ public class AnimalMagnetismEvent extends BotEvent implements Logger {
                 case 0:
                     // Start
                     if (helper.inArea(START_AREA)) {
-                        info("Talking to Elena");
-                        if (helper.talkTo("Elena"))
+                        info("Talking to Ava");
+                        if (helper.talkTo("Ava"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        info("Walking to Elena");
+                        info("Walking to Ava");
                         helper.getWeb(START_AREA).execute();
                     }
                     break;
-
+                case 76:
+                    // Got crone amulet.
+                    if (getBot().getInventory().contains("Ghostspeak amulet")){
+                        info("Wearing our ghostspeak amulet again.");
+                        if (helper.interactInventory("Ghostspeak amulet", "Wear")){
+                            sleepUntil(4000, () -> getBot().getEquipment().contains("Ghostspeak amulet"));
+                        }
+                    }
+                case 60:
+                    // Husband and wife exchanges
+                case 50:
+                    // Husband and wife exchanges
+                case 40:
+                    // Husband and wife exchanges
                 case 30:
+                    // Husband and wife exchanges
+                case 20:
+                    // Husband and wife exchanges
+                case 10:
+                    if (talkToHusband){
+                        info("Talk to husband.");
+                        if (helper.talkTo("Alice's husband")) {
+                            sleepUntil(10000, () -> getBot().getDialogues().inDialogue());
+                            talkToHusband = false;
+                        }
+                    } else if (helper.inArea(UNDEAD_FARM_AREA)){
+                        info("Talk to Alice");
+                        if (helper.talkTo("Alice")) {
+                            sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                            talkToHusband = true;
+                        }
+                    } else {
+                        info("Walking to Alice");
+                        helper.getWeb(UNDEAD_FARM_AREA).execute();
+                    }
+                    break;
+                case 73:
+                    if (getBot().getEquipment().contains("Ghostspeak amulet")){
+                        if (new EquipmentInteractEvent(getBot(), "Ghostspeak amulet", "Remove").executed()) {
+                            info("Removed ghostspeak amulet");
+                            sleepUntil(4000, () -> !getBot().getEquipment().contains("Ghostspeak amulet"));
+                        }
+                    }
+                case 70:
+                    // Get crone amulet
+                    if (helper.inArea(CRONE_AREA)){
+                        info("Talking to crone");
+                        if (helper.talkTo("Old crone")) {
+                            sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                        }
+                    } else {
+                        info("Walking to crone");
+                        helper.getWeb(CRONE_AREA).execute();
+                    }
+                    break;
+
+                case 300:
                     // End
                     info("Finished: " + Quest.ANIMAL_MAGNETISM.name());
                     setComplete();
