@@ -156,7 +156,7 @@ public class VampireSlayerEvent extends BotEvent implements Logger {
                     break;
 
                 case 3:
-                    if (helper.interactObject("Stairs", "Walk-Up")) {
+                    if (helper.myPosition().getY() > 9000 && helper.interactObject("Stairs", "Walk-Up")) {
                         info("Going upstairs");
                         sleepUntil(7000, () -> helper.myPosition().getY() < 9000);
                     }

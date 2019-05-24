@@ -110,7 +110,7 @@ public class HelperMethods {
             }
             originalPrice = context.getPriceGrabber().getGEPrice(key);
             // Buy over 30% value for instant transactions > 500 : buy for 5,000 max
-            price = originalPrice > 1500 ? (int) (originalPrice + (originalPrice * .30)) : 5000;
+            price = originalPrice > 1500 || key.contains("rune") ? (int) (originalPrice + (originalPrice * .30)) : 5000;
             expectedTotal += price;
 
             System.out.println("Adding " + key + " to buy list");
