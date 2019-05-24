@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class AnimalMagnetismEvent extends BotEvent implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
+            "I would be happy to make your home a better place.",
             "I'm here about a quest.", "Okay, you need it more than I do, I suppose.",
             "Could I buy those chickens now, then?", "Could I buy 2 chickens?",
             "Hello, I'm here about those trees again.", "I'd love one, thanks"
