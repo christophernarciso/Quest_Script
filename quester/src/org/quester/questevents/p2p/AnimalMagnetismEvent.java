@@ -2,6 +2,7 @@ package org.quester.questevents.p2p;
 
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
+import org.quantumbot.api.map.Tile;
 import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.BotEvent;
@@ -12,7 +13,6 @@ import org.quantumbot.events.containers.StoreInteractEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questutil.HelperMethods;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,7 +37,7 @@ public class AnimalMagnetismEvent extends BotEvent implements Logger {
     private final Area RIMMINGTON_MINE_AREA = new Area(2975, 3242, 2979, 3237);
     private final Area UNDEAD_TREE_AREA = new Area(3108, 3347, 3110, 3345);
     private final Area SLAYER_MASTER_AREA = new Area(2930, 3538, 2933, 3535);
-    private boolean talkToHusband, talkToDisciple, talkToAva;
+    private boolean talkToHusband, haveIngred, talkToDisciple, talkToAva;
 
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
@@ -66,6 +66,7 @@ public class AnimalMagnetismEvent extends BotEvent implements Logger {
         info("Started: " + Quest.ANIMAL_MAGNETISM.name());
         helper.setGrabbedItems(false);
         talkToHusband = false;
+        haveIngred = false;
         talkToDisciple = false;
         talkToAva = false;
     }
@@ -161,6 +162,7 @@ public class AnimalMagnetismEvent extends BotEvent implements Logger {
                 case 10:
                     if (talkToHusband) {
                         info("Talk to husband.");
+                        helper.getWeb(UNDEAD_FARM_AREA).execute();
                         if (helper.talkTo("Alice's husband")) {
                             sleepUntil(10000, () -> getBot().getDialogues().inDialogue());
                             talkToHusband = false;
@@ -229,24 +231,25 @@ public class AnimalMagnetismEvent extends BotEvent implements Logger {
                             sleepUntil(10000, () -> getBot().getDialogues().inDialogue());
                             talkToDisciple = false;
                         }
-                    } else if (helper.getQuantity(getBot().getInventory(), "Bonemeal") < 1) {
+                    } else if (!haveIngred && helper.getQuantity(getBot().getInventory(), "Bonemeal") < 4) {
                         if (helper.inArea(BONE_GRINDER_AREA)) {
                             info("making grinded bones");
                             if (helper.useOnObject("Loader", "Bones")) {
-                                sleepUntil(60000, () -> !getBot().getInventory().contains("Bones"));
-                                sleepGameCycle();
+                                sleepUntil(120000, () -> !getBot().getInventory().contains("Bones"));
+                                sleep(5000);
                             }
                         } else {
                             info("Walking to bone grinder");
                             helper.getWeb(BONE_GRINDER_AREA).execute();
                         }
-                    } else if (helper.getQuantity(getBot().getInventory(), "Bucket of slime") < 1) {
+                    } else if (!haveIngred && helper.getQuantity(getBot().getInventory(), "Bucket of slime") < 4) {
                         if (helper.inArea(SLIME_SHOP_AREA)) {
                             info("Buying slime");
                             if (getBot().getStoreInventory().isOpen()) {
                                 if (getBot().getStoreInventory().contains("Bucket of slime")) {
                                     if (new StoreInteractEvent(getBot(), "Bucket of slime", "Buy 5").executed()) {
                                         sleepUntil(3000, () -> helper.getQuantity(getBot().getInventory(), "Buckets of slime") > 3);
+                                        haveIngred = true;
                                     }
                                 }
                             } else if (helper.interactNPC("Trader Crewmember", "Trade")) {
@@ -310,12 +313,12 @@ public class AnimalMagnetismEvent extends BotEvent implements Logger {
                     if (helper.inArea(UNDEAD_TREE_AREA)) {
                         info("Attempting to cut tree.");
                         if (helper.interactNPC("Undead tree", "Chop")) {
-                            sleepGameCycle();
                             talkToAva = true;
+                            sleepGameCycle();
                         }
                     } else {
                         info("Walking to undead trees");
-                        helper.getWeb(UNDEAD_TREE_AREA).execute();
+                        helper.getWeb(new Tile(3109, 3345, 0)).execute();
                     }
                     break;
                 case 170:
@@ -365,7 +368,7 @@ public class AnimalMagnetismEvent extends BotEvent implements Logger {
                         }
                     } else {
                         info("Walking to undead trees");
-                        helper.getWeb(UNDEAD_TREE_AREA).execute();
+                        helper.getWeb(new Tile(3109, 3345, 0)).execute();
                     }
                     break;
                 case 200:

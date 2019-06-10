@@ -138,8 +138,11 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                                 placeHead = true;
                             }
-                        } else if (helper.interactObject("Coffin", "Open"))
+                        } else if (helper.interactObject("Coffin", "Open")) {
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                        } else if (helper.interactObject("Coffin", "Search")){
+                            sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                        }
                     } else {
                         helper.getWeb(GHOST_AREA).execute();
                     }

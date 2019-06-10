@@ -275,6 +275,12 @@ public class WaterfallEvent extends BotEvent implements Logger {
                     break;
                 case 4:
                     if (!gotAmulet || !gotUrn) {
+                        if (getBot().getInventory().contains("Glarial's urn")) {
+                            gotUrn = true;
+                            gotAmulet = true;
+                            return;
+                        }
+
                         if (helper.myPosition().getY() < 9000 || helper.inArea(MAZE_DUNGEON_PEBBLE_ROOM)) {
                             if (helper.inArea(GLARIAL_TOMBSTONE_AREA)) {
                                 info("At the tomb");

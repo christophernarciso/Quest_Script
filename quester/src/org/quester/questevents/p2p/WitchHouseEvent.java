@@ -57,11 +57,11 @@ public class WitchHouseEvent extends BotEvent implements Logger {
         itemReq.put("Mind rune", 500);
         itemReq.put("Air rune", 1000);
         itemReq.put("Cheese", 3);
-        itemReq.put("Lobster", 10);
+        itemReq.put("Lobster", 13);
         if (getBot().getClient().getSkillReal(Skill.MAGIC) >= 13)
             itemReq.put("Staff of fire", 1);
         else
-            itemReq.put("Staff of water", 1);
+            itemReq.put("Staff of earth", 1);
         itemReq.put("Leather gloves", 1);
         itemReq.put("Amulet of magic", 1);
         info("Started: " + Quest.WITCHS_HOUSE.name());
@@ -80,7 +80,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                     if (helper.closeBank()) {
                         // Execute wear equipment.
                         sleepUntil(5000, () -> !getBot().getBank().isOpen());
-                        String[] equipables = {"Amulet of magic", "Leather gloves", "Staff of fire", "Staff of water"};
+                        String[] equipables = {"Amulet of magic", "Leather gloves", "Staff of earth", "Staff of fire"};
                         for (String s : equipables) {
                             if (helper.interactInventory(s, "Wear", "Wield"))
                                 sleep(1200);
@@ -203,7 +203,7 @@ public class WitchHouseEvent extends BotEvent implements Logger {
                         info("In boss area");
                         if (!helper.isAutocasting()) {
                             info("Need to autocast spell");
-                            if (helper.autocastSpell(getBot().getClient().getSkillReal(Skill.MAGIC) >= 13 ? StandardSpellbook.FIRE_STRIKE : StandardSpellbook.WATER_STRIKE, false)) {
+                            if (helper.autocastSpell(getBot().getClient().getSkillReal(Skill.MAGIC) >= 13 ? StandardSpellbook.FIRE_STRIKE : StandardSpellbook.EARTH_STRIKE, false)) {
                                 sleepUntil(3000, () -> helper.isAutocasting());
                             }
                         } else {

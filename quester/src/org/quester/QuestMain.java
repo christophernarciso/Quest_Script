@@ -12,7 +12,7 @@ import org.quester.questutil.HelperMethods;
 public class QuestMain extends Script implements Logger {
 
     private HelperMethods helperMethods;
-    private boolean starterAccountMode = true, allFreeToPlayMode = true, avasReady = true;
+    private boolean starterAccountMode = false, allFreeToPlayMode = false, avasReady = false, fungusReady = true;
 
     @Override
     public void onStart() {
@@ -36,7 +36,16 @@ public class QuestMain extends Script implements Logger {
                     new ErnestTheChickenEvent(getBot(), helperMethods)
             ).executed();
             allFreeToPlayMode = false;
-        }else if (starterAccountMode) {
+        } else if (fungusReady){
+            new ImpCatcherEvent(getBot(), helperMethods).then(
+                    new WitchPotionEvent(getBot(), helperMethods),
+                    new WitchHouseEvent(getBot(), helperMethods),
+                    new WaterfallEvent(getBot(), helperMethods),
+                    new RestlessGhostEvent(getBot(), helperMethods),
+                    new PriestInPerilEvent(getBot(), helperMethods),
+                    new NatureSpiritEvent(getBot(), helperMethods)
+            ).executed();
+        } else if (starterAccountMode) {
             new DeathPlateauEvent(getBot(), helperMethods).then(
                     new ImpCatcherEvent(getBot(), helperMethods),
                     new WitchPotionEvent(getBot(), helperMethods),

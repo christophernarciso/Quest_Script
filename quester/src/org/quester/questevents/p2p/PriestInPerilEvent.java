@@ -22,8 +22,7 @@ import java.util.function.Predicate;
 public class PriestInPerilEvent extends BotEvent implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
-            "Sure.", "Roald sent me to check on Drezel.", "Yes", "Tell me anyway.",
-
+            "Sure.", "Roald sent me to check on Drezel.", "Yes", "Tell me anyway."
     };
     private final Tile[] MONUMENT_POSITIONS = {
             new Tile(3423, 9884, 0), new Tile(3427, 9885, 0),

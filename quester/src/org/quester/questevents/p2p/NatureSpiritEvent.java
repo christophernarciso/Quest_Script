@@ -10,17 +10,18 @@ import org.quester.questutil.HelperMethods;
 
 import java.util.HashMap;
 
-public class BiohazardEvent extends BotEvent implements Logger {
+public class NatureSpiritEvent extends BotEvent implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
-            "I'll try to retrieve it for you."
+            "Is there anything else interesting to do around here?", "Well, what is it, I may be able to help?",
+
     };
-    private final Area START_AREA = new Area(2590, 3338, 2594, 3334);
+    private final Area START_AREA = new Area(3435, 9902, 3444, 9886);
 
     private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public BiohazardEvent(QuantumBot bot, HelperMethods helper) {
+    public NatureSpiritEvent(QuantumBot bot, HelperMethods helper) {
         super(bot);
         this.helper = helper;
     }
@@ -28,24 +29,36 @@ public class BiohazardEvent extends BotEvent implements Logger {
     @Override
     public void onStart() {
         // Required items needed
-        itemReq.put("Ardougne teleport", 2);
-        itemReq.put("Falador teleport", 2);
-        itemReq.put("Varrock teleport", 2);
-        itemReq.put("Coins", 500);
+        itemReq.put("Ghostspeak amulet", 1);
+        itemReq.put("Silver sickle", 1);
+        itemReq.put("Adamant scimitar", 1);
+        itemReq.put("Lobster", 13);
 
-        info("Started: " + Quest.BIOHAZARD.name());
+        info("Started: " + Quest.NATURE_SPIRIT.name());
         helper.setGrabbedItems(true);
     }
 
     @Override
     public void step() throws InterruptedException {
-        int result = getBot().getVarps().getVarp(68);
+        int result = getBot().getVarps().getVarp(307);
 
         if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
             if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
-                // Load bank event and execute withdraw;
-                helper.setGrabbedItems(helper.getBankEvent(itemReq).executed());
+                // Load bank event and execute withdraw
+                if (helper.getBankEvent(itemReq).executed()) {
+                    if (helper.closeBank()) {
+                        // Execute wear equipment.
+                        sleepUntil(5000, () -> !getBot().getBank().isOpen());
+                        String[] equipables = {"Adamant scimitar", "Ghostspeak amulet"};
+                        for (String s : equipables) {
+                            if (helper.interactInventory(s, "Wear", "Wield"))
+                                sleep(1200);
+                        }
+                        // At this point we now have our items equipped.
+                        helper.setGrabbedItems(true);
+                    }
+                }
             } else {
                 // Load buy event and execute buy orders
                 if (helper.getBuyableEvent(itemReq) == null) {
@@ -60,7 +73,7 @@ public class BiohazardEvent extends BotEvent implements Logger {
             return;
         }
 
-        info("Quest stage: 68 = " + result);
+        info("Quest stage: 307 = " + result);
         if (getBot().getDialogues().inDialogue()) {
             info("Dialogue");
             if (getBot().getDialogues().isPendingContinuation()) {
@@ -80,18 +93,18 @@ public class BiohazardEvent extends BotEvent implements Logger {
                 case 0:
                     // Start
                     if (helper.inArea(START_AREA)) {
-                        info("Talking to Elena");
-                        if (helper.talkTo("Elena"))
+                        info("Talking to Drezel");
+                        if (helper.talkTo("Drezel"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        info("Walking to Elena");
+                        info("Walking to Drezel");
                         helper.getWeb(START_AREA).execute();
                     }
                     break;
 
                 case 30:
                     // End
-                    info("Finished: " + Quest.BIOHAZARD.name());
+                    info("Finished: " + Quest.NATURE_SPIRIT.name());
                     setComplete();
                     break;
             }

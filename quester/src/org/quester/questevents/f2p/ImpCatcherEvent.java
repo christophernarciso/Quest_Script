@@ -32,8 +32,10 @@ public class ImpCatcherEvent extends BotEvent implements Logger {
         itemReq.put("Yellow bead", 1);
         itemReq.put("Red bead", 1);
         itemReq.put("White bead", 1);
-        if (getBot().getClient().isMembers())
+        if (getBot().getClient().isMembers()) {
+            itemReq.put("Ring of wealth (5)", 1);
             itemReq.put("Necklace of passage(1~5)", 1);
+        }
         info("Started: " + Quest.IMP_CATCHER.name());
         helper.setGrabbedItems(false);
     }
