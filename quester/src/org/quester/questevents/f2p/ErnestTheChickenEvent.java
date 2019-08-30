@@ -4,17 +4,16 @@ import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.Quest;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.ItemCombineEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class ErnestTheChickenEvent extends BotEvent implements Logger {
+public class ErnestTheChickenEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "Aha, sounds like a quest. I'll help.", "I'm looking for a guy called Ernest.",
@@ -37,12 +36,10 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
     private List<String> levers = new ArrayList<>();
     private boolean done;
 
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public ErnestTheChickenEvent(QuantumBot bot, HelperMethods helper) {
+    public ErnestTheChickenEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -54,7 +51,7 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
         if (getBot().getClient().isMembers())
             itemReq.put("Draynor manor teleport", 1);
         info("Started: " + Quest.ERNEST_THE_CHICKEN.name());
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
         // Setup the levers
         levers.add("Lever B");
         levers.add("Lever A");
@@ -73,21 +70,21 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
         int result = getBot().getVarps().getVarp(32);
         int leverRes = getBot().getVarps().getVarp(33);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
-                helper.setGrabbedItems(helper.getBankEvent(itemReq).executed());
+                setGrabbedItems(getBankEvent(itemReq).executed());
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -111,84 +108,84 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
             switch (result) {
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
-                        if (helper.talkTo("Veronica"))
+                    if (inArea(START_AREA)) {
+                        if (talkTo("Veronica"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
                 case 1:
-                    if (helper.inArea(PROFESSOR_AREA)) {
-                        if (helper.talkTo("Professor Oddenstein"))
+                    if (inArea(PROFESSOR_AREA)) {
+                        if (talkTo("Professor Oddenstein"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(PROFESSOR_AREA).execute();
+                        getWeb(PROFESSOR_AREA).execute();
                     }
                     break;
                 case 2:
                     if (!getBot().getInventory().contains("Pressure gauge")) {
-                        if (helper.inArea(FOUNTAIN_AREA)) {
+                        if (inArea(FOUNTAIN_AREA)) {
                             if (getBot().getInventory().contains("Poisoned fish food")) {
-                                if (helper.useOnObject("Fountain", "Poisoned fish food")) {
+                                if (useOnObject("Fountain", "Poisoned fish food")) {
                                     sleepUntil(4000, () -> !getBot().getInventory().contains("Poisoned fish food"));
                                 }
                             } else if (getBot().getInventory().contains("Poison")) {
                                 if (new ItemCombineEvent(getBot(), "Poison", "Fish food").executed()) {
                                     sleepUntil(3000, () -> getBot().getInventory().contains("Poisoned fish food"));
                                 }
-                            } else if (helper.interactObject("Fountain", "Search")) {
+                            } else if (interactObject("Fountain", "Search")) {
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             }
                         } else {
-                            helper.getWeb(FOUNTAIN_AREA).execute();
+                            getWeb(FOUNTAIN_AREA).execute();
                         }
                     } else if (!getBot().getInventory().contains("Rubber tube")) {
                         if (getBot().getInventory().contains("Key")) {
-                            if (helper.inArea(TUBE_AREA)) {
-                                if (helper.interactGroundItem("Rubber tube", "Take")) {
+                            if (inArea(TUBE_AREA)) {
+                                if (interactGroundItem("Rubber tube", "Take")) {
                                     sleepUntil(3000, () -> getBot().getInventory().contains("Rubber tube"));
                                 }
                             } else {
-                                helper.getWeb(TUBE_AREA).execute();
+                                getWeb(TUBE_AREA).execute();
                             }
                         } else {
-                            if (helper.inArea(COMPOST_AREA)) {
-                                if (helper.useOnObject("Compost heap", "Spade")) {
+                            if (inArea(COMPOST_AREA)) {
+                                if (useOnObject("Compost heap", "Spade")) {
                                     sleepUntil(4000, () -> getBot().getInventory().contains("Key"));
                                 }
                             } else {
-                                helper.getWeb(COMPOST_AREA).execute();
+                                getWeb(COMPOST_AREA).execute();
                             }
                         }
-                    } else if (!getBot().getInventory().contains("Oil can") || helper.inArea(BASEMENT_OIL_CAN_AREA)) {
-                        if (helper.myPosition().getY() < 9000) {
-                            if (helper.inArea(TUBE_AREA)) {
+                    } else if (!getBot().getInventory().contains("Oil can") || inArea(BASEMENT_OIL_CAN_AREA)) {
+                        if (myPosition().getY() < 9000) {
+                            if (inArea(TUBE_AREA)) {
                                 info("Leaving tube room");
-                                if (helper.interactObject("Door", "Open")) {
-                                    sleepUntil(3000, () -> !helper.inArea(TUBE_AREA));
+                                if (interactObject("Door", "Open")) {
+                                    sleepUntil(3000, () -> !inArea(TUBE_AREA));
                                 }
-                            } else if (helper.inArea(BASEMENT_ENTRANCE_AREA)){
+                            } else if (inArea(BASEMENT_ENTRANCE_AREA)) {
                                 info("going down the ladder");
-                                if (helper.interactObject("Ladder", "Climb-down")){
-                                    sleepUntil(4000, () -> helper.inArea(BASEMENT_OIL_CAN_AREA));
+                                if (interactObject("Ladder", "Climb-down")) {
+                                    sleepUntil(4000, () -> inArea(BASEMENT_OIL_CAN_AREA));
                                 }
                             } else {
                                 info("Walking to basement entrance");
-                                helper.getWeb(BASEMENT_ENTRANCE_AREA).execute();
+                                getWeb(BASEMENT_ENTRANCE_AREA).execute();
                             }
                         } else {
                             handleDoorMaze(leverRes);
                         }
                     } else if (done) {
                         if ((int) getBot().getInventory().getAmount("Coins") < 300) {
-                            if (helper.inArea(PROFESSOR_AREA)) {
+                            if (inArea(PROFESSOR_AREA)) {
 
-                                if (helper.talkTo("Professor Oddenstein"))
+                                if (talkTo("Professor Oddenstein"))
                                     sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             } else {
                                 sleep(4000);
-                                helper.getWeb(PROFESSOR_AREA).execute();
+                                getWeb(PROFESSOR_AREA).execute();
                             }
                         }
                     }
@@ -206,7 +203,7 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 
     private void handleDoorMaze(int leverRes) throws InterruptedException {
@@ -214,183 +211,183 @@ public class ErnestTheChickenEvent extends BotEvent implements Logger {
 
         switch (leverRes) {
             case 88:
-                if (helper.inArea(BASEMENT_E_F_AREA)) {
-                    if (helper.interactObject(d -> d != null && d.hasName("Door")
+                if (inArea(BASEMENT_E_F_AREA)) {
+                    if (interactObject(d -> d != null && d.hasName("Door")
                                     && d.hasAction("Open")
                                     && d.getTile().equals(new Tile(3100, 9765, 0))
                             , "Open")) {
                         info("Opening next door");
-                        sleepUntil(3000, () -> !helper.inArea(BASEMENT_E_F_AREA));
+                        sleepUntil(3000, () -> !inArea(BASEMENT_E_F_AREA));
                         break;
                     }
-                } else if (helper.inArea(BASEMENT_7_8_AREA)) {
-                    if (helper.interactObject(d -> d != null && d.hasName("Door")
+                } else if (inArea(BASEMENT_7_8_AREA)) {
+                    if (interactObject(d -> d != null && d.hasName("Door")
                                     && d.hasAction("Open")
                                     && d.getTile().equals(new Tile(3102, 9763, 0))
                             , "Open")) {
                         info("Opening next door");
-                        sleepUntil(3000, () -> !helper.inArea(BASEMENT_7_8_AREA));
+                        sleepUntil(3000, () -> !inArea(BASEMENT_7_8_AREA));
                         break;
                     }
-                } else if (helper.inArea(BASEMENT_2_3_AREA)) {
-                    if (helper.interactObject(d -> d != null && d.hasName("Door")
+                } else if (inArea(BASEMENT_2_3_AREA)) {
+                    if (interactObject(d -> d != null && d.hasName("Door")
                                     && d.hasAction("Open")
                                     && d.getTile().equals(new Tile(3102, 9758, 0))
                             , "Open")) {
                         info("Opening next door");
-                        sleepUntil(3000, () -> !helper.inArea(BASEMENT_2_3_AREA));
+                        sleepUntil(3000, () -> !inArea(BASEMENT_2_3_AREA));
                         break;
                     }
-                } else if (helper.inArea(BASEMENT_A_B_AREA)) {
-                    if (helper.interactObject(d -> d != null && d.hasName("Door")
+                } else if (inArea(BASEMENT_A_B_AREA)) {
+                    if (interactObject(d -> d != null && d.hasName("Door")
                                     && d.hasAction("Open")
                                     && d.getTile().equals(new Tile(3100, 9755, 0))
                             , "Open")) {
                         info("Opening next door");
-                        sleepUntil(3000, () -> !helper.inArea(BASEMENT_A_B_AREA));
+                        sleepUntil(3000, () -> !inArea(BASEMENT_A_B_AREA));
                         break;
                     }
-                } else if (helper.inArea(BASEMENT_OIL_CAN_AREA)) {
+                } else if (inArea(BASEMENT_OIL_CAN_AREA)) {
                     if (getBot().getInventory().contains("Oil can")) {
-                        if (helper.interactObject(d -> d != null && d.hasName("Door")
+                        if (interactObject(d -> d != null && d.hasName("Door")
                                         && d.hasAction("Open")
                                         && d.getTile().equals(new Tile(3100, 9755, 0))
                                 , "Open")) {
                             info("Opening next door");
-                            sleepUntil(5000, () -> helper.inArea(BASEMENT_A_B_AREA));
+                            sleepUntil(5000, () -> inArea(BASEMENT_A_B_AREA));
                             break;
                         }
-                    } else if (helper.interactGroundItem("Oil can", "Take")) {
+                    } else if (interactGroundItem("Oil can", "Take")) {
                         sleepUntil(7000, () -> getBot().getInventory().contains("Oil can"));
                         done = true;
                     }
                 }
                 break;
             case 120:
-                if (helper.inArea(BASEMENT_C_D_AREA)) {
-                    if (helper.interactObject(d -> d != null && d.hasName("Door")
+                if (inArea(BASEMENT_C_D_AREA)) {
+                    if (interactObject(d -> d != null && d.hasName("Door")
                                     && d.hasAction("Open")
                                     && d.getTile().equals(new Tile(3105, 9765, 0))
                             , "Open")) {
                         info("Opening next door");
-                        sleepUntil(3000, () -> !helper.inArea(BASEMENT_C_D_AREA));
+                        sleepUntil(3000, () -> !inArea(BASEMENT_C_D_AREA));
                         break;
                     }
-                } else if (helper.inArea(BASEMENT_7_8_AREA)) {
-                    if (helper.interactObject(d -> d != null && d.hasName("Door")
+                } else if (inArea(BASEMENT_7_8_AREA)) {
+                    if (interactObject(d -> d != null && d.hasName("Door")
                                     && d.hasAction("Open")
                                     && d.getTile().equals(new Tile(3100, 9765, 0))
                             , "Open")) {
                         info("Opening next door");
-                        sleepUntil(3000, () -> !helper.inArea(BASEMENT_7_8_AREA));
+                        sleepUntil(3000, () -> !inArea(BASEMENT_7_8_AREA));
                         break;
                     }
-                } else if (helper.inArea(BASEMENT_E_F_AREA)) {
+                } else if (inArea(BASEMENT_E_F_AREA)) {
                     info("Pull lever E");
                     sleep(1500);
                 }
             case 112:
                 if (leverRes == 112) {
-                    if (helper.inArea(BASEMENT_E_F_AREA)) {
-                        if (helper.interactObject(d -> d != null && d.hasName("Door")
+                    if (inArea(BASEMENT_E_F_AREA)) {
+                        if (interactObject(d -> d != null && d.hasName("Door")
                                         && d.hasAction("Open")
                                         && d.getTile().equals(new Tile(3100, 9765, 0))
                                 , "Open")) {
                             info("Opening next door");
-                            sleepUntil(3000, () -> !helper.inArea(BASEMENT_E_F_AREA));
+                            sleepUntil(3000, () -> !inArea(BASEMENT_E_F_AREA));
                             break;
                         }
-                    } else if (helper.inArea(BASEMENT_7_8_AREA)) {
-                        if (helper.interactObject(d -> d != null && d.hasName("Door")
+                    } else if (inArea(BASEMENT_7_8_AREA)) {
+                        if (interactObject(d -> d != null && d.hasName("Door")
                                         && d.hasAction("Open")
                                         && d.getTile().equals(new Tile(3105, 9765, 0))
                                 , "Open")) {
                             info("Opening next door");
-                            sleepUntil(3000, () -> !helper.inArea(BASEMENT_7_8_AREA));
+                            sleepUntil(3000, () -> !inArea(BASEMENT_7_8_AREA));
                             break;
                         }
-                    } else if (helper.inArea(BASEMENT_C_D_AREA)) {
+                    } else if (inArea(BASEMENT_C_D_AREA)) {
                         info("Pull lever C");
                         sleep(1000);
                     }
                 }
             case 16:
                 if (leverRes == 16) {
-                    if (helper.inArea(BASEMENT_A_B_AREA)) {
-                        if (helper.interactObject(d -> d != null && d.hasName("Door")
+                    if (inArea(BASEMENT_A_B_AREA)) {
+                        if (interactObject(d -> d != null && d.hasName("Door")
                                         && d.hasAction("Open")
                                         && d.getTile().equals(new Tile(3102, 9758, 0))
                                 , "Open")) {
                             info("Opening next door");
-                            sleepUntil(3000, () -> !helper.inArea(BASEMENT_A_B_AREA));
+                            sleepUntil(3000, () -> !inArea(BASEMENT_A_B_AREA));
                             break;
                         }
-                    } else if (helper.inArea(BASEMENT_2_3_AREA)) {
-                        if (helper.interactObject(d -> d != null && d.hasName("Door")
+                    } else if (inArea(BASEMENT_2_3_AREA)) {
+                        if (interactObject(d -> d != null && d.hasName("Door")
                                         && d.hasAction("Open")
                                         && d.getTile().equals(new Tile(3100, 9760, 0))
                                 , "Open")) {
                             info("Opening next door");
-                            sleepUntil(3000, () -> !helper.inArea(BASEMENT_2_3_AREA));
+                            sleepUntil(3000, () -> !inArea(BASEMENT_2_3_AREA));
                             break;
                         }
-                    } else if (helper.inArea(BASEMENT_4_5_AREA)) {
-                        if (helper.interactObject(d -> d != null && d.hasName("Door")
+                    } else if (inArea(BASEMENT_4_5_AREA)) {
+                        if (interactObject(d -> d != null && d.hasName("Door")
                                         && d.hasAction("Open")
                                         && d.getTile().equals(new Tile(3097, 9763, 0))
                                 , "Open")) {
                             info("Opening next door");
-                            sleepUntil(3000, () -> !helper.inArea(BASEMENT_4_5_AREA));
+                            sleepUntil(3000, () -> !inArea(BASEMENT_4_5_AREA));
                             break;
                         }
-                    } else if (helper.inArea(BASEMENT_E_F_AREA)) {
+                    } else if (inArea(BASEMENT_E_F_AREA)) {
                         info("Pull F & E");
                         sleep(1500);
                     }
                 }
             case 22:
                 if (leverRes == 22) {
-                    if (helper.inArea(BASEMENT_A_B_AREA)) {
+                    if (inArea(BASEMENT_A_B_AREA)) {
                         info("Pull lever B & A");
                         sleep(1500);
-                    } else if (helper.inArea(BASEMENT_2_3_AREA)) {
-                        if (helper.interactObject(d -> d != null && d.hasName("Door")
+                    } else if (inArea(BASEMENT_2_3_AREA)) {
+                        if (interactObject(d -> d != null && d.hasName("Door")
                                         && d.hasAction("Open")
                                         && d.getTile().equals(new Tile(3102, 9758, 0))
                                 , "Open")) {
                             info("Opening next door");
-                            sleepUntil(3000, () -> !helper.inArea(BASEMENT_2_3_AREA));
+                            sleepUntil(3000, () -> !inArea(BASEMENT_2_3_AREA));
                             break;
                         }
-                    } else if (helper.inArea(BASEMENT_C_D_AREA)) {
-                        if (helper.interactObject(d -> d != null && d.hasName("Door")
+                    } else if (inArea(BASEMENT_C_D_AREA)) {
+                        if (interactObject(d -> d != null && d.hasName("Door")
                                         && d.hasAction("Open")
                                         && d.getTile().equals(new Tile(3105, 9760, 0))
                                 , "Open")) {
                             info("Opening next door");
-                            sleepUntil(3000, () -> !helper.inArea(BASEMENT_C_D_AREA));
+                            sleepUntil(3000, () -> !inArea(BASEMENT_C_D_AREA));
                             break;
                         }
                     }
                 }
             case 6:
                 if (leverRes == 6) {
-                    if (helper.inArea(BASEMENT_C_D_AREA)) {
+                    if (inArea(BASEMENT_C_D_AREA)) {
                         info("Pull lever D");
                         sleep(1500);
                     } else {
-                        if (helper.interactObject("Door", "Open")) {
+                        if (interactObject("Door", "Open")) {
                             info("Opening next door");
-                            sleepUntil(3000, () -> !helper.inArea(BASEMENT_A_B_AREA));
+                            sleepUntil(3000, () -> !inArea(BASEMENT_A_B_AREA));
                             break;
                         }
                     }
                 }
             default:
                 if (!levers.isEmpty()) {
-                    if (helper.interactObject(levers.get(0), "Pull")) {
+                    if (interactObject(levers.get(0), "Pull")) {
                         levers.remove(levers.get(0));
-                        sleepUntil(7000, () -> helper.myPlayer().isAnimating());
+                        sleepUntil(7000, () -> myPlayer().isAnimating());
                     }
                 }
                 break;

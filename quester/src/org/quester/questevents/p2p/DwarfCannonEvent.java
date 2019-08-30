@@ -6,15 +6,14 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.Quest;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 import java.util.function.Predicate;
 
-public class DwarfCannonEvent extends BotEvent implements Logger {
+public class DwarfCannonEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "Sure, I'd be honoured to join.", "Okay, I'll see what I can do.",
@@ -31,12 +30,10 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
     private final Area LOST_BOY_AREA = new Area(2560, 9856, 2573, 9839);
     private final Area NOTES_AREA = new Area(3008, 3454, 3014, 3452);
 
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public DwarfCannonEvent(QuantumBot bot, HelperMethods helper) {
+    public DwarfCannonEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -46,28 +43,28 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
         itemReq.put("Falador teleport", 2);
         itemReq.put("Camelot teleport", 2);
         info("Started: " + Quest.DWARF_CANNON.name());
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(0);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
-                helper.setGrabbedItems(helper.getBankEvent(itemReq).executed());
+                setGrabbedItems(getBankEvent(itemReq).executed());
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -97,9 +94,9 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                     // Return to Captain Lawgof
                 case 3:
                     // Grab remains
-                    if (helper.inArea(REMAINS_AREA) && !getBot().getInventory().contains("Dwarf remains")) {
+                    if (inArea(REMAINS_AREA) && !getBot().getInventory().contains("Dwarf remains")) {
                         info("Grabbing dwarf remains");
-                        if (helper.interactObject("Dwarf remains", "Take"))
+                        if (interactObject("Dwarf remains", "Take"))
                             sleepUntil(3000, () -> getBot().getInventory().contains("Dwarf remains"));
                         break;
                     }
@@ -108,16 +105,16 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                     if (getBot().getInventory().contains("Railing")) {
                         int index = 0;
                         while (index < BROKEN_RAILING_LOCATIONS.length) {
-                            int finalIndex = index, last = helper.getQuantity(getBot().getInventory(), "Railing");
+                            int finalIndex = index, last = getQuantity(getBot().getInventory(), "Railing");
                             Predicate<GameObject> gameObjectPredicate = o -> o != null && o.getTile().equals(BROKEN_RAILING_LOCATIONS[finalIndex]);
 
-                            if (helper.interactObject(gameObjectPredicate, "Inspect")) {
+                            if (interactObject(gameObjectPredicate, "Inspect")) {
                                 sleepUntil(2000, () -> getBot().getDialogues().inDialogue());
 
                                 if (getBot().getDialogues().isPendingContinuation())
                                     new DialogueEvent(getBot()).execute();
 
-                                if (sleepUntil(3500, () -> helper.getQuantity(getBot().getInventory(), "Railing") < last)) {
+                                if (sleepUntil(3500, () -> getQuantity(getBot().getInventory(), "Railing") < last)) {
                                     info("Fixed railing at " + BROKEN_RAILING_LOCATIONS[index].toString());
                                     index++;
                                 }
@@ -127,47 +124,47 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                     }
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
-                        if (helper.talkTo("Captain Lawgof"))
+                    if (inArea(START_AREA)) {
+                        if (talkTo("Captain Lawgof"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
                 case 2:
                     // Go to remains
-//                    if (helper.inArea(REMAINS_AREA)){
+//                    if (inArea(REMAINS_AREA)){
 //                        info("Grabbing dwarf remains");
-//                        if (helper.interactGroundItem("Dwarf remains", "Take"))
+//                        if (interactGroundItem("Dwarf remains", "Take"))
 //                            sleepUntil(3000, () -> getBot().getInventory().contains("Dwarf remains"));
 //                    } else {
 //
 //                    }
                     info("Walking to dwarf remains");
-                    helper.getWeb(REMAINS_AREA).execute();
+                    getWeb(REMAINS_AREA).execute();
                     break;
                 case 4:
                     // Go find lost boy
-                    if (helper.myPosition().getY() < 9000) {
-                        if (helper.inArea(DUNGEON_ENTRANCE_AREA)) {
-                            if (helper.interactObject("Cave Entrance", "Enter"))
-                                sleepUntil(3000, () -> !helper.inArea(DUNGEON_ENTRANCE_AREA));
+                    if (myPosition().getY() < 9000) {
+                        if (inArea(DUNGEON_ENTRANCE_AREA)) {
+                            if (interactObject("Cave Entrance", "Enter"))
+                                sleepUntil(3000, () -> !inArea(DUNGEON_ENTRANCE_AREA));
                         } else {
                             info("Walking to dungeon entrance");
-                            helper.getWeb(DUNGEON_ENTRANCE_AREA).execute();
+                            getWeb(DUNGEON_ENTRANCE_AREA).execute();
                         }
                     } else {
                         info("Walking to lost boy");
-                        helper.getWeb(new Tile(2571, 9851, 0)).execute();
+                        getWeb(new Tile(2571, 9851, 0)).execute();
                         sleepGameCycle();
                     }
                     break;
                 case 5:
                     info("Walking to lost boy");
-                    helper.getWeb(new Tile(2571, 9851, 0)).execute();
+                    getWeb(new Tile(2571, 9851, 0)).execute();
                     sleepGameCycle();
                     // Open Crate for lost boy
-                    if (helper.interactObject("Crate", "Search")) {
+                    if (interactObject("Crate", "Search")) {
                         sleepUntil(5000, () -> getBot().getDialogues().inDialogue());
                     }
                     break;
@@ -187,9 +184,9 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                             info("Fixing gear.");
                             tool = getBot().getWidgets().get(409, 1, -1);
 
-                            if (tool != null && helper.getInteractEvent(tool, "Select").executed()) {
+                            if (tool != null && getInteractEvent(tool, "Select").executed()) {
                                 sleep(2000);
-                                if (helper.getInteractEvent(gear, "Gear").executed())
+                                if (getInteractEvent(gear, "Gear").executed())
                                     sleep(3000);
                             }
                         }
@@ -197,9 +194,9 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                             info("Fixing safety switch.");
                             tool = getBot().getWidgets().get(409, 2, -1);
 
-                            if (tool != null && helper.getInteractEvent(tool, "Select").executed()) {
+                            if (tool != null && getInteractEvent(tool, "Select").executed()) {
                                 sleep(2000);
-                                if (helper.getInteractEvent(safety, "Safety switch").executed())
+                                if (getInteractEvent(safety, "Safety switch").executed())
                                     sleep(3000);
                             }
                         }
@@ -207,22 +204,22 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
                             info("Fixing spring.");
                             tool = getBot().getWidgets().get(409, 3, -1);
 
-                            if (tool != null && helper.getInteractEvent(tool, "Select").executed()) {
+                            if (tool != null && getInteractEvent(tool, "Select").executed()) {
                                 sleep(2000);
-                                if (helper.getInteractEvent(spring, "Spring").executed())
+                                if (getInteractEvent(spring, "Spring").executed())
                                     sleep(3000);
                             }
                         }
-                    } else if (helper.useOnObject("Broken multicannon", "Toolkit"))
+                    } else if (useOnObject("Broken multicannon", "Toolkit"))
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     break;
                 case 9:
-                    if (helper.inArea(NOTES_AREA)) {
-                        if (helper.talkTo("Nulodion"))
+                    if (inArea(NOTES_AREA)) {
+                        if (talkTo("Nulodion"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Grabbing nulodions notes");
-                        helper.getWeb(NOTES_AREA).execute();
+                        getWeb(NOTES_AREA).execute();
                     }
                     break;
 
@@ -238,7 +235,7 @@ public class DwarfCannonEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 }
 

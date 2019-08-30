@@ -3,15 +3,14 @@ package org.quester.questevents.f2p;
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 
 // Work in progress
-public class MarksTheSpotEvent extends BotEvent implements Logger {
+public class MarksTheSpotEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "I'm looking for a quest.", "Sounds good, what should I do?", "Okay, thanks Veos.",
@@ -31,12 +30,10 @@ public class MarksTheSpotEvent extends BotEvent implements Logger {
             }
     );
 
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public MarksTheSpotEvent(QuantumBot bot, HelperMethods helper) {
+    public MarksTheSpotEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -48,28 +45,28 @@ public class MarksTheSpotEvent extends BotEvent implements Logger {
             itemReq.put("Necklace of passage(1~5)", 1);
         }
         info("Started: X Marks the Spot");
-        helper.setGrabbedItems(true);
+        setGrabbedItems(true);
     }
 
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(173);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
-                helper.setGrabbedItems(helper.getBankEvent(itemReq).executed());
+                setGrabbedItems(getBankEvent(itemReq).executed());
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -96,11 +93,11 @@ public class MarksTheSpotEvent extends BotEvent implements Logger {
                     if (getBot().getInventory().contains("Ancient casket"))
                         START_AREA = new Area(3047, 3249, 3055, 3245);
 
-                    if (helper.inArea(START_AREA)) {
-                        if (helper.talkTo("Veos"))
+                    if (inArea(START_AREA)) {
+                        if (talkTo("Veos"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
                 case 1:
@@ -111,11 +108,11 @@ public class MarksTheSpotEvent extends BotEvent implements Logger {
                     else if (getBot().getInventory().contains(23070))
                         MARK_TILE = new Tile(3077, 3260, 0);
 
-                    if (helper.myPosition().equals(MARK_TILE)) {
-                        if (helper.interactInventory("Spade", "Dig"))
+                    if (myPosition().equals(MARK_TILE)) {
+                        if (interactInventory("Spade", "Dig"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(MARK_TILE).setDestinationAccuracy(0).execute();
+                        getWeb(MARK_TILE).setDestinationAccuracy(0).execute();
                     }
                     break;
 
@@ -131,6 +128,6 @@ public class MarksTheSpotEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 }

@@ -3,26 +3,24 @@ package org.quester.questevents.p2p;
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 
-public class BiohazardEvent extends BotEvent implements Logger {
+public class BiohazardEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "I'll try to retrieve it for you."
     };
     private final Area START_AREA = new Area(2590, 3338, 2594, 3334);
 
-    private HelperMethods helper;
+    private QuestContext helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public BiohazardEvent(QuantumBot bot, HelperMethods helper) {
+    public BiohazardEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -34,28 +32,28 @@ public class BiohazardEvent extends BotEvent implements Logger {
         itemReq.put("Coins", 500);
 
         info("Started: " + Quest.BIOHAZARD.name());
-        helper.setGrabbedItems(true);
+        setGrabbedItems(true);
     }
 
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(68);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
-                helper.setGrabbedItems(helper.getBankEvent(itemReq).executed());
+                setGrabbedItems(getBankEvent(itemReq).executed());
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -79,13 +77,13 @@ public class BiohazardEvent extends BotEvent implements Logger {
             switch (result) {
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
+                    if (inArea(START_AREA)) {
                         info("Talking to Elena");
-                        if (helper.talkTo("Elena"))
+                        if (talkTo("Elena"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Walking to Elena");
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
 
@@ -101,7 +99,7 @@ public class BiohazardEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 }
 

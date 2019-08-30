@@ -6,62 +6,61 @@ import org.quantumbot.events.containers.BankOpenEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.f2p.*;
 import org.quester.questevents.p2p.*;
-import org.quester.questutil.HelperMethods;
 
 @ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Quest")
 public class QuestMain extends Script implements Logger {
 
-    private HelperMethods helperMethods;
-    private boolean starterAccountMode = false, allFreeToPlayMode = false, avasReady = false, fungusReady = true;
+    private boolean starterAccountMode = false, allFreeToPlayMode = false, avasReady = true, fungusReady = false;
 
     @Override
     public void onStart() {
-        helperMethods = new HelperMethods(getBot());
+
     }
 
     @Override
     public void onLoop() throws InterruptedException {
         info("bank cached: " + getBot().getBank().isCached());
         // Cache the bank before executing events.
-        if (!getBot().getBank().isCached() && helperMethods.myPosition().getY() < 9000)
+        if (!getBot().getBank().isCached())
             new BankOpenEvent(getBot()).execute();
         else if (allFreeToPlayMode) {
-            new CookAssistantEvent(getBot(), helperMethods).then(
-                    new DoricEvent(getBot(), helperMethods),
-                    new ImpCatcherEvent(getBot(), helperMethods),
-                    new WitchPotionEvent(getBot(), helperMethods),
-                    new RuneMysteriesEvent(getBot(), helperMethods),
-                    new SheepShearerEvent(getBot(), helperMethods),
-                    new RestlessGhostEvent(getBot(), helperMethods),
-                    new ErnestTheChickenEvent(getBot(), helperMethods)
+            new CookAssistantEvent(getBot()).then(
+                    new DoricEvent(getBot()),
+                    new ImpCatcherEvent(getBot()),
+                    new WitchPotionEvent(getBot()),
+                    new RuneMysteriesEvent(getBot()),
+                    new SheepShearerEvent(getBot()),
+                    new RestlessGhostEvent(getBot()),
+                    new ErnestTheChickenEvent(getBot())
             ).executed();
             allFreeToPlayMode = false;
-        } else if (fungusReady){
-            new ImpCatcherEvent(getBot(), helperMethods).then(
-                    new WitchPotionEvent(getBot(), helperMethods),
-                    new WitchHouseEvent(getBot(), helperMethods),
-                    new WaterfallEvent(getBot(), helperMethods),
-                    new RestlessGhostEvent(getBot(), helperMethods),
-                    new PriestInPerilEvent(getBot(), helperMethods),
-                    new NatureSpiritEvent(getBot(), helperMethods)
+        } else if (fungusReady) {
+            new ImpCatcherEvent(getBot()).then(
+                    new WitchPotionEvent(getBot()),
+                    new WitchHouseEvent(getBot()),
+                    new WaterfallEvent(getBot()),
+                    new RestlessGhostEvent(getBot()),
+                    new PriestInPerilEvent(getBot()),
+                    new NatureSpiritEvent(getBot())
             ).executed();
         } else if (starterAccountMode) {
-            new DeathPlateauEvent(getBot(), helperMethods).then(
-                    new ImpCatcherEvent(getBot(), helperMethods),
-                    new WitchPotionEvent(getBot(), helperMethods),
-                    new WitchHouseEvent(getBot(), helperMethods),
-                    new WaterfallEvent(getBot(), helperMethods),
-                    new VampireSlayerEvent(getBot(), helperMethods)
+            new DeathPlateauEvent(getBot()).then(
+                    new ImpCatcherEvent(getBot()),
+                    new WitchPotionEvent(getBot()),
+                    new WitchHouseEvent(getBot()),
+                    new WaterfallEvent(getBot()),
+                    new VampireSlayerEvent(getBot())
             ).executed();
             starterAccountMode = false;
         } else if (avasReady) {
-            new RestlessGhostEvent(getBot(), helperMethods).then(
-                    new ErnestTheChickenEvent(getBot(), helperMethods),
-                    new WaterfallEvent(getBot(), helperMethods),
-                    new PriestInPerilEvent(getBot(), helperMethods),
-                    new DwarfCannonEvent(getBot(), helperMethods),
-                    new PlagueCityEvent(getBot(), helperMethods),
-                    new AnimalMagnetismEvent(getBot(), helperMethods)
+            new AnimalMagnetismEvent(getBot()).executed();
+            new RestlessGhostEvent(getBot()).then(
+                    new ErnestTheChickenEvent(getBot()),
+                    new WaterfallEvent(getBot()),
+                    new PriestInPerilEvent(getBot()),
+                    new DwarfCannonEvent(getBot()),
+                    new PlagueCityEvent(getBot()),
+                    new AnimalMagnetismEvent(getBot())
             ).executed();
             avasReady = false;
         } else {

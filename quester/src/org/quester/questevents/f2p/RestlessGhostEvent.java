@@ -4,14 +4,13 @@ import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.entities.NPC;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 
-public class RestlessGhostEvent extends BotEvent implements Logger {
+public class RestlessGhostEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "I'm looking for a quest!", "Ok, let me help then.", "Father Aereck sent me to talk to you.",
@@ -24,12 +23,10 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
     private final Area SKULL_AREA = new Area(3111, 9569, 3121, 9564);
     private boolean placeHead;
 
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public RestlessGhostEvent(QuantumBot bot, HelperMethods helper) {
+    public RestlessGhostEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -40,7 +37,7 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
             itemReq.put("Necklace of passage(1~5)", 1);
         }
         info("Started: " + Quest.THE_RESTLESS_GHOST.name());
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
         placeHead = false;
     }
 
@@ -48,21 +45,21 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(107);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
-                helper.setGrabbedItems(helper.getBankEvent(itemReq).executed());
+                setGrabbedItems(getBankEvent(itemReq).executed());
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -86,65 +83,65 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
             switch (result) {
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
-                        if (helper.talkTo("Father Aereck"))
+                    if (inArea(START_AREA)) {
+                        if (talkTo("Father Aereck"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
                 case 1:
-                    if (helper.inArea(URHNEY_AREA)) {
-                        if (helper.talkTo("Father Urhney"))
+                    if (inArea(URHNEY_AREA)) {
+                        if (talkTo("Father Urhney"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(URHNEY_AREA).execute();
+                        getWeb(URHNEY_AREA).execute();
                     }
                     break;
                 case 2:
                     if (getBot().getInventory().contains("Ghostspeak amulet")) {
-                        if (helper.interactInventory("Ghostspeak amulet", "Wear"))
+                        if (interactInventory("Ghostspeak amulet", "Wear"))
                             sleepUntil(3000, () -> !getBot().getInventory().contains("Ghostspeak amulet"));
-                    } else if (helper.inArea(GHOST_AREA)) {
+                    } else if (inArea(GHOST_AREA)) {
                         NPC ghost = getBot().getNPCs().first("Restless ghost");
                         if (ghost != null) {
-                            if (helper.getInteractEvent(ghost, "Talk-to").executed())
+                            if (getInteractEvent(ghost, "Talk-to").executed())
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                        } else if (helper.interactObject("Coffin", "Open"))
+                        } else if (interactObject("Coffin", "Open"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(GHOST_AREA).execute();
+                        getWeb(GHOST_AREA).execute();
                     }
                     break;
                 case 3:
-                    if (helper.inArea(SKULL_AREA)) {
-                        if (helper.interactObject("Altar", "Search"))
+                    if (inArea(SKULL_AREA)) {
+                        if (interactObject("Altar", "Search"))
                             sleepUntil(3000, () -> getBot().getInventory().contains("Ghost's skull"));
                     } else {
-                        helper.getWeb(SKULL_AREA).execute();
+                        getWeb(SKULL_AREA).execute();
                     }
                     break;
                 case 4:
-                    if (helper.inArea(GHOST_AREA)) {
+                    if (inArea(GHOST_AREA)) {
                         NPC ghost = getBot().getNPCs().first("Restless ghost");
                         if (placeHead) {
                             if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Ghost's skull"))) {
-                                if (helper.interactObject("Coffin", "Use"))
+                                if (interactObject("Coffin", "Use"))
                                     sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                            } else if (helper.interactInventory("Ghost's skull", "Use"))
+                            } else if (interactInventory("Ghost's skull", "Use"))
                                 sleepUntil(3000, () -> getBot().getInventory().isSelected(i -> i != null && i.hasName("Ghost's skull")));
                         } else if (ghost != null) {
-                            if (helper.getInteractEvent(ghost, "Talk-to").executed()) {
+                            if (getInteractEvent(ghost, "Talk-to").executed()) {
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                                 placeHead = true;
                             }
-                        } else if (helper.interactObject("Coffin", "Open")) {
+                        } else if (interactObject("Coffin", "Open")) {
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                        } else if (helper.interactObject("Coffin", "Search")){
+                        } else if (interactObject("Coffin", "Search")) {
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         }
                     } else {
-                        helper.getWeb(GHOST_AREA).execute();
+                        getWeb(GHOST_AREA).execute();
                     }
                     break;
                 case 5:
@@ -159,7 +156,7 @@ public class RestlessGhostEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
         placeHead = false;
     }
 }

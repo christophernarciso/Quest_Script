@@ -9,17 +9,16 @@ import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.Food;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.events.containers.BankEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 import java.util.function.Predicate;
 
-public class PriestInPerilEvent extends BotEvent implements Logger {
+public class PriestInPerilEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "Sure.", "Roald sent me to check on Drezel.", "Yes", "Tell me anyway."
@@ -54,12 +53,10 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
     private final Area TEMPLE_DREZEL_AREA = new Area(3436, 9903, 3444, 9886);
     private boolean returnToDrezel;
 
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public PriestInPerilEvent(QuantumBot bot, HelperMethods helper) {
+    public PriestInPerilEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -73,7 +70,7 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
         itemReq.put("Varrock teleport", 2);
 
         info("Started: " + Quest.PRIEST_IN_PERIL.name());
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
         returnToDrezel = false;
     }
 
@@ -81,36 +78,36 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(302);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 // We can't withdraw > 28
                 itemReq.remove("Pure essence");
 
                 info("Bank event execute");
                 // Load bank event and execute withdraw
-                if (helper.getBankEvent(itemReq).executed()) {
-                    if (helper.closeBank()) {
+                if (getBankEvent(itemReq).executed()) {
+                    if (closeBank()) {
                         // Execute wear equipment.
                         sleepUntil(5000, () -> !getBot().getBank().isOpen());
                         String[] equipables = {"Adamant scimitar", "Amulet of strength"};
                         for (String s : equipables) {
-                            if (helper.interactInventory(s, "Wear", "Wield"))
+                            if (interactInventory(s, "Wear", "Wield"))
                                 sleep(1200);
                         }
                         // At this point we now have our items equipped.
-                        helper.setGrabbedItems(true);
+                        setGrabbedItems(true);
                     }
                 }
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -130,7 +127,7 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
             } else {
                 info("No dialogue???");
             }
-        } else if (getBot().getInventory().contains("Lobster") && helper.ourHealthPercent() <= 50) {
+        } else if (getBot().getInventory().contains("Lobster") && ourHealthPercent() <= 50) {
             new HealEvent(getBot(), getBot().getClient().getSkillBoosted(Skill.HITPOINTS), Food.LOBSTER).executed();
         } else {
             switch (result) {
@@ -138,54 +135,54 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
                     // Just return to King Roald.
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
+                    if (inArea(START_AREA)) {
                         info("Talk to King Roald");
-                        if (helper.talkTo("King Roald"))
+                        if (talkTo("King Roald"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Walk to King Roald");
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
 
                 case 1:
                     // Knock at temple
-                    if (helper.inArea(TEMPLE_FRONT_DOOR_AREA)) {
+                    if (inArea(TEMPLE_FRONT_DOOR_AREA)) {
                         info("Knock on temple door");
-                        if (helper.interactObject("Large door", "Knock-at"))
+                        if (interactObject("Large door", "Knock-at"))
                             sleepUntil(4000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Walk to temple");
-                        helper.getWeb(TEMPLE_FRONT_DOOR_AREA).execute();
+                        getWeb(TEMPLE_FRONT_DOOR_AREA).execute();
                     }
                     break;
                 case 2:
                     // Told to kill a guardian dog in dungeon
                     NPC templeGuardian = getBot().getNPCs().first("Temple guardian");
                     if (templeGuardian != null) {
-                        if (!helper.myPlayer().isInteracting()) {
+                        if (!myPlayer().isInteracting()) {
                             info("Fighting temple guardian");
-                            if (helper.getInteractEvent(templeGuardian, "Attack").executed())
-                                sleepUntil(3000, () -> helper.myPlayer().isInteracting());
+                            if (getInteractEvent(templeGuardian, "Attack").executed())
+                                sleepUntil(3000, () -> myPlayer().isInteracting());
                         }
-                    } else if (helper.inArea(TEMPLE_DUNGEON_ENTRANCE_AREA)) {
+                    } else if (inArea(TEMPLE_DUNGEON_ENTRANCE_AREA)) {
                         GameObject trapdoor = getBot().getGameObjects().closest("Trapdoor");
                         if (trapdoor != null) {
-                            if (trapdoor.hasAction("Open") && helper.interactObject("Trapdoor", "Open")) {
+                            if (trapdoor.hasAction("Open") && interactObject("Trapdoor", "Open")) {
                                 info("Open trapdoor");
                                 sleepGameCycle();
-                            } else if (trapdoor.hasAction("Climb-down") && helper.interactObject("Trapdoor", "Climb-down")) {
+                            } else if (trapdoor.hasAction("Climb-down") && interactObject("Trapdoor", "Climb-down")) {
                                 info("Entering dungeon");
                                 sleepUntil(4000, () -> getBot().getDialogues().inDialogue());
                             }
                         }
                     } else {
                         info("Walking to entrance");
-                        helper.getWeb(new Tile(3405, 3506, 0)).execute();
+                        getWeb(new Tile(3405, 3506, 0)).execute();
                     }
                     break;
                 case 4:
-                    if (helper.inArea(TEMPLE_GROUND_FLOOR_AREA) || helper.inArea(TEMPLE_TOP_FLOOR_AREA)) {
+                    if (inArea(TEMPLE_GROUND_FLOOR_AREA) || inArea(TEMPLE_TOP_FLOOR_AREA)) {
                         if (!getBot().getInventory().contains("Golden key")) {
                             sleep(3000);
                             GroundItem key = getBot().getGroundItems().first("Golden key");
@@ -193,67 +190,67 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
                                     && m.hasAction("Attack") && m.hasName("Monk of Zamorak"));
                             if (key != null) {
                                 info("Grabbing golden key");
-                                if (helper.getInteractEvent(key, "Take").executed())
+                                if (getInteractEvent(key, "Take").executed())
                                     sleepUntil(3000, () -> getBot().getInventory().contains("Golden key"));
                             } else if (monk != null) {
-                                if (!helper.myPlayer().isInteracting()) {
+                                if (!myPlayer().isInteracting()) {
                                     info("Fighting monk for golden key");
-                                    if (helper.getInteractEvent(monk, "Attack").executed())
-                                        sleepUntil(3000, () -> helper.myPlayer().isInteracting());
+                                    if (getInteractEvent(monk, "Attack").executed())
+                                        sleepUntil(3000, () -> myPlayer().isInteracting());
                                 }
                             }
-                        } else if (helper.inArea(TEMPLE_TOP_FLOOR_AREA)) {
+                        } else if (inArea(TEMPLE_TOP_FLOOR_AREA)) {
                             info("Talk to drezel through cell door");
-                            if (helper.interactObject("Cell door", "Talk-through"))
+                            if (interactObject("Cell door", "Talk-through"))
                                 sleepUntil(4000, () -> getBot().getDialogues().inDialogue());
-                        } else if (helper.inArea(TEMPLE_MIDDLE_FLOOR_AREA)) {
+                        } else if (inArea(TEMPLE_MIDDLE_FLOOR_AREA)) {
                             info("Climbing ladder");
-                            if (helper.interactObject("Ladder", "Climb-up"))
-                                sleepUntil(4000, () -> helper.inArea(TEMPLE_TOP_FLOOR_AREA));
+                            if (interactObject("Ladder", "Climb-up"))
+                                sleepUntil(4000, () -> inArea(TEMPLE_TOP_FLOOR_AREA));
                         } else {
                             info("Going to top floor.");
-                            helper.getWeb(TEMPLE_TOP_FLOOR_AREA).execute();
+                            getWeb(TEMPLE_TOP_FLOOR_AREA).execute();
                         }
-                    } else if (helper.inArea(TEMPLE_FRONT_DOOR_AREA)) {
+                    } else if (inArea(TEMPLE_FRONT_DOOR_AREA)) {
                         info("Knock on temple door");
-                        if (helper.interactObject("Large door", "Knock-at"))
+                        if (interactObject("Large door", "Knock-at"))
                             sleepUntil(4000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Walk to temple");
-                        helper.getWeb(TEMPLE_FRONT_DOOR_AREA).execute();
+                        getWeb(TEMPLE_FRONT_DOOR_AREA).execute();
                     }
                     break;
                 case 5:
                     if (returnToDrezel) {
-                        if (helper.inArea(TEMPLE_TOP_FLOOR_AREA)) {
+                        if (inArea(TEMPLE_TOP_FLOOR_AREA)) {
                             info("Unlocking door.");
-                            if (helper.useOnObject("Cell door", "Iron key"))
+                            if (useOnObject("Cell door", "Iron key"))
                                 sleepUntil(4000, () -> getBot().getDialogues().inDialogue());
-                        } else if (helper.inArea(TEMPLE_MIDDLE_FLOOR_AREA)) {
+                        } else if (inArea(TEMPLE_MIDDLE_FLOOR_AREA)) {
                             info("Climbing ladder");
-                            if (helper.interactObject("Ladder", "Climb-up"))
-                                sleepUntil(4000, () -> helper.inArea(TEMPLE_TOP_FLOOR_AREA));
+                            if (interactObject("Ladder", "Climb-up"))
+                                sleepUntil(4000, () -> inArea(TEMPLE_TOP_FLOOR_AREA));
                         } else {
                             info("Going to top floor.");
-                            helper.getWeb(TEMPLE_TOP_FLOOR_AREA).execute();
+                            getWeb(TEMPLE_TOP_FLOOR_AREA).execute();
                         }
-                    } else if (helper.myPosition().getY() < 9000) {
-                        if (helper.inArea(TEMPLE_DUNGEON_ENTRANCE_AREA)) {
+                    } else if (myPosition().getY() < 9000) {
+                        if (inArea(TEMPLE_DUNGEON_ENTRANCE_AREA)) {
                             GameObject trapdoor = getBot().getGameObjects().closest("Trapdoor");
                             if (trapdoor != null) {
-                                if (trapdoor.hasAction("Open") && helper.interactObject("Trapdoor", "Open")) {
+                                if (trapdoor.hasAction("Open") && interactObject("Trapdoor", "Open")) {
                                     info("Open trapdoor");
                                     sleepGameCycle();
-                                } else if (trapdoor.hasAction("Climb-down") && helper.interactObject("Trapdoor", "Climb-down")) {
+                                } else if (trapdoor.hasAction("Climb-down") && interactObject("Trapdoor", "Climb-down")) {
                                     info("Entering dungeon");
-                                    sleepUntil(4000, () -> !helper.inArea(TEMPLE_DUNGEON_ENTRANCE_AREA));
+                                    sleepUntil(4000, () -> !inArea(TEMPLE_DUNGEON_ENTRANCE_AREA));
                                 }
                             }
                         } else {
                             info("Walking to entrance");
-                            helper.getWeb(new Tile(3405, 3506, 0)).execute();
+                            getWeb(new Tile(3405, 3506, 0)).execute();
                         }
-                    } else if (helper.inArea(TEMPLE_DUNGEON_MONUMENT_AREA)) {
+                    } else if (inArea(TEMPLE_DUNGEON_MONUMENT_AREA)) {
                         if (!getBot().getInventory().contains("Iron key")) {
                             info("Finding iron key primary task");
                             int index = 0;
@@ -262,17 +259,17 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
 
                                 int finalIndex = index;
                                 Predicate<GameObject> gameObjectPredicate = o -> o != null && o.getTile().equals(MONUMENT_POSITIONS[finalIndex]);
-                                if (MONUMENT_POSITIONS[finalIndex].distance(helper.myPosition()) > 2)
-                                    helper.getWeb(MONUMENT_POSITIONS[finalIndex].translate(0, -1)).execute();
+                                if (MONUMENT_POSITIONS[finalIndex].distance(myPosition()) > 2)
+                                    getWeb(MONUMENT_POSITIONS[finalIndex].translate(0, -1)).execute();
 
-                                if (helper.useOnObject(gameObjectPredicate, "Golden key")) {
+                                if (useOnObject(gameObjectPredicate, "Golden key")) {
                                     info("Used: key on monument at " + MONUMENT_POSITIONS[index].toString());
                                     sleep(1000);
                                     index++;
                                 }
                             }
                         } else if (!getBot().getInventory().contains("Murky water")) {
-                            if (helper.useOnObject("Well", "Bucket"))
+                            if (useOnObject("Well", "Bucket"))
                                 sleepUntil(3000, () -> getBot().getInventory().contains("Murky water"));
                         } else {
                             info("Have required items.");
@@ -280,56 +277,56 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
                         }
                     } else {
                         info("Walking to monuments");
-                        helper.getWeb(TEMPLE_DUNGEON_MONUMENT_AREA).execute();
+                        getWeb(TEMPLE_DUNGEON_MONUMENT_AREA).execute();
                     }
                     break;
                 case 7:
                     // Just return to Drezel
                 case 6:
-                    if (helper.inArea(TEMPLE_TOP_FLOOR_AREA)) {
+                    if (inArea(TEMPLE_TOP_FLOOR_AREA)) {
                         if (getBot().getInventory().contains("Blessed water")) {
-                            if (helper.inArea(TEMPLE_TOP_CELL_AREA)) {
+                            if (inArea(TEMPLE_TOP_CELL_AREA)) {
                                 info("Leaving cell area");
-                                if (helper.interactObject("Cell door", "Open"))
-                                    sleepUntil(4000, () -> !helper.inArea(TEMPLE_TOP_CELL_AREA));
-                            } else if (helper.useOnObject("Coffin", "Blessed water")) {
+                                if (interactObject("Cell door", "Open"))
+                                    sleepUntil(4000, () -> !inArea(TEMPLE_TOP_CELL_AREA));
+                            } else if (useOnObject("Coffin", "Blessed water")) {
                                 info("Using bucket on coffin");
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             }
-                        } else if (helper.inArea(TEMPLE_TOP_CELL_AREA)) {
+                        } else if (inArea(TEMPLE_TOP_CELL_AREA)) {
                             info("Talk to Drezel");
-                            if (helper.talkTo("Drezel"))
+                            if (talkTo("Drezel"))
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                        } else if (helper.interactObject("Cell door", "Open")) {
+                        } else if (interactObject("Cell door", "Open")) {
                             info("Opening cell door");
-                            sleepUntil(4000, () -> helper.inArea(TEMPLE_TOP_CELL_AREA));
+                            sleepUntil(4000, () -> inArea(TEMPLE_TOP_CELL_AREA));
                         }
                     }
                     break;
                 case 8:
-                    if (helper.inArea(TEMPLE_TOP_CELL_AREA)) {
-                        if (helper.interactObject("Cell door", "Open"))
-                            sleepUntil(4000, () -> !helper.inArea(TEMPLE_TOP_CELL_AREA));
-                    } else if (helper.inArea(TEMPLE_DREZEL_AREA)) {
+                    if (inArea(TEMPLE_TOP_CELL_AREA)) {
+                        if (interactObject("Cell door", "Open"))
+                            sleepUntil(4000, () -> !inArea(TEMPLE_TOP_CELL_AREA));
+                    } else if (inArea(TEMPLE_DREZEL_AREA)) {
                         info("Talk to Drezel");
-                        if (helper.talkTo("Drezel"))
+                        if (talkTo("Drezel"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Walking to Drezel");
-                        helper.getWeb(TEMPLE_DREZEL_AREA).execute();
+                        getWeb(TEMPLE_DREZEL_AREA).execute();
                     }
                     break;
                 case 38:
                     // Keep getting essence
                 case 10:
                     if (getBot().getInventory().contains("Pure essence")) {
-                        if (helper.inArea(TEMPLE_DREZEL_AREA)) {
+                        if (inArea(TEMPLE_DREZEL_AREA)) {
                             info("Talk to Drezel");
-                            if (helper.talkTo("Drezel"))
+                            if (talkTo("Drezel"))
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         } else {
                             info("Walking to Drezel");
-                            helper.getWeb(TEMPLE_DREZEL_AREA).execute();
+                            getWeb(TEMPLE_DREZEL_AREA).execute();
                         }
                     } else {
                         info("Grabbing more essence.");
@@ -340,7 +337,7 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
                 case 60:
                     sleepGameCycle();
                     info("Talk to Drezel");
-                    if (helper.talkTo("Drezel"))
+                    if (talkTo("Drezel"))
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
 
                     // End
@@ -354,6 +351,6 @@ public class PriestInPerilEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 }

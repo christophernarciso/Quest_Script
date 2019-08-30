@@ -11,10 +11,7 @@ import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.Skill;
 import org.quantumbot.enums.Tab;
 import org.quantumbot.enums.spells.StandardSpellbook;
-import org.quantumbot.events.CloseInterfacesEvent;
-import org.quantumbot.events.DialogueEvent;
-import org.quantumbot.events.TabEvent;
-import org.quantumbot.events.WebWalkEvent;
+import org.quantumbot.events.*;
 import org.quantumbot.events.containers.BankEvent;
 import org.quantumbot.events.containers.BankOpenEvent;
 import org.quantumbot.events.containers.InventoryInteractEvent;
@@ -28,54 +25,53 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class HelperMethods {
+public abstract class QuestContext extends BotEvent {
 
     private final Point DEFENSIVE_AUTOCAST_BUTTON_POSITION = new Point(650, 280);
     private final Point REGULAR_AUTOCAST_BUTTON_POSITION = new Point(649, 303);
-    private QuantumBot context;
     private boolean grabbedItems;
 
-    public HelperMethods(QuantumBot context) {
-        this.context = context;
+    public QuestContext(QuantumBot context) {
+        super(context);
     }
 
-    public QuantumBot getContext() {
-        return this.context;
-    }
+    /**
+     * HELPER METHODS
+     */
 
     public Player myPlayer() {
-        return context.getPlayers().getLocal();
+        return getBot().getPlayers().getLocal();
     }
 
     public Tile myPosition() {
-        return context.getPlayers().getLocal().getTile();
+        return getBot().getPlayers().getLocal().getTile();
     }
 
     public WebWalkEvent getWeb(Locatable... locations) {
-        return new WebWalkEvent(context, locations);
+        return new WebWalkEvent(getBot(), locations);
     }
 
     public WebWalkEvent getWeb(Area area) {
-        return new WebWalkEvent(context, area);
+        return new WebWalkEvent(getBot(), area);
     }
 
     public WebWalkEvent getWeb(Tile tile) {
-        WebWalkEvent w = new WebWalkEvent(context, tile);
-        w.setInterruptCondition(() -> context.getInventory().contains(item -> item != null && item.hasAction("Eat"))
+        WebWalkEvent w = new WebWalkEvent(getBot(), tile);
+        w.setInterruptCondition(() -> getBot().getInventory().contains(item -> item != null && item.hasAction("Eat"))
                 && ourHealthPercent() <= 50);
         return w;
     }
 
     public InteractEvent getInteractEvent(Interactable interactable, String... actions) {
-        return new InteractEvent(context, interactable, actions);
+        return new InteractEvent(getBot(), interactable, actions);
     }
 
     public DialogueEvent getDialogue(String... options) {
-        return options == null ? new DialogueEvent(context) : new DialogueEvent(context, options);
+        return options == null ? new DialogueEvent(getBot()) : new DialogueEvent(getBot(), options);
     }
 
     public BankEvent getBankEvent(HashMap<String, Integer> req) {
-        BankEvent be = new BankEvent(context);
+        BankEvent be = new BankEvent(getBot());
         be.stopIfUnmetReqs(true);
 
         for (String key : req.keySet())
@@ -85,19 +81,19 @@ public class HelperMethods {
     }
 
     public boolean closeBank() throws InterruptedException {
-        return !context.getBank().isOpen() || new CloseInterfacesEvent(context).executed();
+        return !getBot().getBank().isOpen() || new CloseInterfacesEvent(getBot()).executed();
     }
 
     public boolean openBank() throws InterruptedException {
-        return context.getBank().isOpen() || new BankOpenEvent(context).executed();
+        return getBot().getBank().isOpen() || new BankOpenEvent(getBot()).executed();
     }
 
     public GEEvent getBuyableEvent(HashMap<String, Integer> req) {
-        GEEvent ge = new GEEvent(context);
+        GEEvent ge = new GEEvent(getBot());
         ge.setAlwaysBuy(true);
         ge.setDepositAll(true);
-        int totalCoins = (int) (context.getInventory().getAmount("Coins")
-                + context.getBank().getAmount("Coins"));
+        int totalCoins = (int) (getBot().getInventory().getAmount("Coins")
+                + getBot().getBank().getAmount("Coins"));
         int expectedTotal = 0;
         int originalPrice, price;
 
@@ -108,7 +104,7 @@ public class HelperMethods {
                 key = StringUtils.expandItemName(key).get(expanded.size() - 1);
                 System.out.println("Expanded: " + key);
             }
-            originalPrice = context.getPriceGrabber().getGEPrice(key);
+            originalPrice = getBot().getPriceGrabber().getGEPrice(key);
             // Buy over 30% value for instant transactions > 500 : buy for 5,000 max
             price = originalPrice > 1500 || key.contains("rune") ? (int) (originalPrice + (originalPrice * .30)) : 5000;
             expectedTotal += price;
@@ -124,56 +120,56 @@ public class HelperMethods {
     }
 
     public boolean talkTo(String npcName) throws InterruptedException {
-        if (context.getDialogues().inDialogue())
+        if (getBot().getDialogues().inDialogue())
             return true;
 
-        return new NPCInteractEvent(context, npcName, "Talk-to").executed();
+        return new NPCInteractEvent(getBot(), npcName, "Talk-to").executed();
     }
 
     public boolean interactNPC(String npcName, String... actions) throws InterruptedException {
-        return new NPCInteractEvent(context, npcName, actions).executed();
+        return new NPCInteractEvent(getBot(), npcName, actions).executed();
     }
 
     public boolean interactNPC(Predicate<NPC> npcPredicate, String... actions) throws InterruptedException {
-        return new NPCInteractEvent(context, npcPredicate, actions).executed();
+        return new NPCInteractEvent(getBot(), npcPredicate, actions).executed();
     }
 
     public boolean useOnObject(String objectName, String useItemName) throws InterruptedException {
-        return new ObjectInteractEvent(context, objectName, "Use").setUse(useItemName).executed();
+        return new ObjectInteractEvent(getBot(), objectName, "Use").setUse(useItemName).executed();
     }
 
     public boolean useOnObject(Predicate<GameObject> objectPredicate, String useItemName) throws InterruptedException {
-        return new ObjectInteractEvent(context, objectPredicate, "Use").setUse(useItemName).executed();
+        return new ObjectInteractEvent(getBot(), objectPredicate, "Use").setUse(useItemName).executed();
     }
 
     public boolean interactObject(String objectName, String... actions) throws InterruptedException {
-        return new ObjectInteractEvent(context, objectName, actions).executed();
+        return new ObjectInteractEvent(getBot(), objectName, actions).executed();
     }
 
     public boolean interactObject(Predicate<GameObject> objectPredicate, String... actions) throws InterruptedException {
-        return new ObjectInteractEvent(context, objectPredicate, actions).setWalk(false).executed();
+        return new ObjectInteractEvent(getBot(), objectPredicate, actions).setWalk(false).executed();
     }
 
     public boolean interactGroundItem(String groundItemName, String... actions) throws InterruptedException {
-        return new GroundItemInteractEvent(context, groundItemName, actions).executed();
+        return new GroundItemInteractEvent(getBot(), groundItemName, actions).executed();
     }
 
     public boolean interactGroundItem(Predicate<GroundItem> groundItemPredicate, String... actions) throws InterruptedException {
-        return new GroundItemInteractEvent(context, groundItemPredicate, actions).executed();
+        return new GroundItemInteractEvent(getBot(), groundItemPredicate, actions).executed();
     }
 
     public boolean interactInventory(String itemName, String... actions) throws InterruptedException {
-        if (!context.getInventory().contains(itemName))
+        if (!getBot().getInventory().contains(itemName))
             return false;
 
-        return new InventoryInteractEvent(context, itemName, actions).executed();
+        return new InventoryInteractEvent(getBot(), itemName, actions).executed();
     }
 
     public boolean interactInventory(Predicate<Item> itemPredicate, String... actions) throws InterruptedException {
-        if (!context.getInventory().contains(itemPredicate))
+        if (!getBot().getInventory().contains(itemPredicate))
             return false;
 
-        return new InventoryInteractEvent(context, itemPredicate, actions).executed();
+        return new InventoryInteractEvent(getBot(), itemPredicate, actions).executed();
     }
 
     public boolean inArea(Area area) {
@@ -189,13 +185,13 @@ public class HelperMethods {
             return true;
 
         for (String key : list.keySet()) {
-            if (context.getEquipment().contains(key))
+            if (getBot().getEquipment().contains(key))
                 continue;
 
-            if ((int) context.getBank().getAmount(key) < list.get(key) && bank) {
+            if ((int) getBot().getBank().getAmount(key) < list.get(key) && bank) {
                 //System.out.println("Missing " + key + " x" + list.get(key) + " from the bank");
                 return false;
-            } else if ((int) context.getInventory().getAmount(key) < list.get(key) && !bank) {
+            } else if ((int) getBot().getInventory().getAmount(key) < list.get(key) && !bank) {
                 //System.out.println("Missing  " + key + " x" + list.get(key) + " from the inventory");
                 return false;
             }
@@ -214,31 +210,31 @@ public class HelperMethods {
     private boolean openAutocastPanel(boolean defensive) throws InterruptedException {
         if (isAutocastPanelOpen()) return true;
 
-        if (!context.getTabs().isOpen(Tab.COMBAT_OPTIONS))
-            new TabEvent(context, Tab.COMBAT_OPTIONS).execute();
+        if (!getBot().getTabs().isOpen(Tab.COMBAT_OPTIONS))
+            new TabEvent(getBot(), Tab.COMBAT_OPTIONS).execute();
 
-        Optional<Widget> button = context.getWidgets().getAll().stream().filter(w -> w != null && w.isVisible()
+        Optional<Widget> button = getBot().getWidgets().getAll().stream().filter(w -> w != null && w.isVisible()
                 && w.hasAction("Choose spell") && w.getX() == (defensive ? DEFENSIVE_AUTOCAST_BUTTON_POSITION.getX() : REGULAR_AUTOCAST_BUTTON_POSITION.getX())
                 && w.getY() == (defensive ? DEFENSIVE_AUTOCAST_BUTTON_POSITION.getY() : REGULAR_AUTOCAST_BUTTON_POSITION.getY())).findFirst();
         if (button.isPresent() && button.get().isVisible()) {
-            return new InteractEvent(context, button.get(), "Choose spell").executed();
+            return new InteractEvent(getBot(), button.get(), "Choose spell").executed();
         }
         return false;
     }
 
     private boolean isAutocastPanelOpen() {
-        Widget panel = context.getWidgets().first(w -> w != null && w.getText() != null && w.getText().equals("Select a Combat Spell"));
+        Widget panel = getBot().getWidgets().first(w -> w != null && w.getText() != null && w.getText().equals("Select a Combat Spell"));
         return panel != null && panel.isVisible();
     }
 
     public boolean isAutocasting() {
-        return context.getVarps().getVarp(108) != 0;
+        return getBot().getVarps().getVarp(108) != 0;
     }
 
     public boolean autocastSpell(StandardSpellbook spellbook, boolean defensive) throws InterruptedException {
         if (isAutocastPanelOpen()) {
             System.out.println("Autocast panel open!");
-            if (new WidgetInteractEvent(context, w -> w != null && w.isVisible() && w.hasAction(spellbook.getSpellName()), spellbook.getSpellName()).executed()) {
+            if (new WidgetInteractEvent(getBot(), w -> w != null && w.isVisible() && w.hasAction(spellbook.getSpellName()), spellbook.getSpellName()).executed()) {
                 System.out.println("Autocast: " + spellbook.getSpellName());
                 return true;
             }
@@ -250,13 +246,13 @@ public class HelperMethods {
     }
 
     public int ourHealthPercent() {
-        int currHealth = context.getClient().getSkillBoosted(Skill.HITPOINTS);
-        int maxHealth = context.getClient().getSkillReal(Skill.HITPOINTS);
+        int currHealth = getBot().getClient().getSkillBoosted(Skill.HITPOINTS);
+        int maxHealth = getBot().getClient().getSkillReal(Skill.HITPOINTS);
         return ((currHealth * 100) / maxHealth);
     }
 
     public void walkHere(Tile pos) throws InterruptedException {
-        if (new InteractEvent(context, pos, "Walk here").executed())
+        if (new InteractEvent(getBot(), pos, "Walk here").executed())
             System.out.println("Walk => " + pos.toString());
     }
 

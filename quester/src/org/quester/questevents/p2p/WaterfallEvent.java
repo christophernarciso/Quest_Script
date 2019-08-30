@@ -8,7 +8,6 @@ import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.Food;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.events.containers.BankOpenEvent;
@@ -17,12 +16,12 @@ import org.quantumbot.events.containers.WithdrawEvent;
 import org.quantumbot.events.interactions.InteractEvent;
 import org.quantumbot.events.interactions.WidgetInteractEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 import java.util.function.Predicate;
 
-public class WaterfallEvent extends BotEvent implements Logger {
+public class WaterfallEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "How can I help?", "Where else is worth visiting around here?", "Thanks then, goodbye."
@@ -70,12 +69,10 @@ public class WaterfallEvent extends BotEvent implements Logger {
     private final Area WATERFALL_QUEST_END_ROOM = new Area(2559, 9918, 2572, 9902);
     private boolean talkedToHadley, gotAmulet, gotUrn;
 
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public WaterfallEvent(QuantumBot bot, HelperMethods helperMethods) {
+    public WaterfallEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helperMethods;
     }
 
     @Override
@@ -89,7 +86,7 @@ public class WaterfallEvent extends BotEvent implements Logger {
         itemReq.put("Rope", 1);
         itemReq.put("Lobster", 10);
         info("Started: " + Quest.WATERFALL_QUEST.name());
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
         talkedToHadley = false;
         gotAmulet = gotUrn = false;
     }
@@ -98,13 +95,13 @@ public class WaterfallEvent extends BotEvent implements Logger {
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(65);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw
-                if (helper.getBankEvent(itemReq).executed()) {
+                if (getBankEvent(itemReq).executed()) {
                     sleep(1000);
-                    if (helper.openBank()) {
+                    if (openBank()) {
                         // Execute deposit equipment.
                         String[] deposits = {"Earth rune", "Water rune", "Air rune"};
                         for (String s : deposits) {
@@ -119,20 +116,20 @@ public class WaterfallEvent extends BotEvent implements Logger {
                                 && w.hasAction("Deposit worn items")).executed();
 
                         // At this point we now have our items.
-                        helper.setGrabbedItems(true);
+                        setGrabbedItems(true);
                         sleep(700);
                     }
                 }
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -145,7 +142,7 @@ public class WaterfallEvent extends BotEvent implements Logger {
                 if (new DialogueEvent(getBot()).setInterruptCondition(() -> getBot().getDialogues().isPendingOption()).executed())
                     sleep(1000);
 
-                if (helper.inArea(MAZE_DUNGEON_PEBBLE_ROOM) && !getBot().getInventory().contains("Glarial's pebble") && result == 3)
+                if (inArea(MAZE_DUNGEON_PEBBLE_ROOM) && !getBot().getInventory().contains("Glarial's pebble") && result == 3)
                     sleepUntil(6000, () -> getBot().getInventory().contains("Glarial's pebble"));
             } else if (getBot().getDialogues().isPendingOption()) {
                 info("QUEST_DIALOGUE");
@@ -154,18 +151,18 @@ public class WaterfallEvent extends BotEvent implements Logger {
             } else {
                 info("No dialogue???");
             }
-        } else if (getBot().getInventory().contains("Lobster") && helper.ourHealthPercent() <= 50) {
+        } else if (getBot().getInventory().contains("Lobster") && ourHealthPercent() <= 50) {
             new HealEvent(getBot(), getBot().getClient().getSkillBoosted(Skill.HITPOINTS), Food.LOBSTER).executed();
         } else {
             switch (result) {
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
+                    if (inArea(START_AREA)) {
                         info("In start area");
-                        if (helper.talkTo("Almera"))
+                        if (talkTo("Almera"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(QUEST_START_TILE).execute();
+                        getWeb(QUEST_START_TILE).execute();
                     }
                     break;
                 case 1:
@@ -177,100 +174,100 @@ public class WaterfallEvent extends BotEvent implements Logger {
                         if (new InteractEvent(getBot(), closedGate, "Open").executed()) {
                             sleepUntil(3000, () -> !closedGate.exists());
                         }
-                    } else if (helper.interactObject("Log raft", "Board")) {
+                    } else if (interactObject("Log raft", "Board")) {
                         info("Boarding raft to lost boy");
                         sleepUntil(13000, () -> getBot().getDialogues().inDialogue());
                     }
                     break;
                 case 2:
                     // Interact barrel
-                    if (helper.inArea(ROPE_ON_ROCK_AREA)) {
+                    if (inArea(ROPE_ON_ROCK_AREA)) {
                         if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Rope"))) {
                             info("Rope selected..interacting rock.");
-                            if (helper.interactObject(o -> o != null && o.hasAction("Swim to")
+                            if (interactObject(o -> o != null && o.hasAction("Swim to")
                                     && o.hasName("Rock") && o.getTile().getY() == 3468, "Use")) {
                                 info("Going across the water: Use rope on rock");
-                                sleepUntil(10000, () -> helper.inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA));
+                                sleepUntil(10000, () -> inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA));
                             }
-                        } else if (helper.interactInventory("Rope", "Use")) {
+                        } else if (interactInventory("Rope", "Use")) {
                             info("Interacting rope: Use");
                             sleepUntil(4000, () -> getBot().getInventory().isSelected(i -> i.hasName("Rope")));
                         }
-                    } else if (helper.inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA)) {
+                    } else if (inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA)) {
                         if (getBot().getInventory().isSelected(i -> i.hasName("Rope"))) {
-                            if (helper.interactObject("Dead tree", "Use")) {
+                            if (interactObject("Dead tree", "Use")) {
                                 info("Going across the water: Use rope on dead tree");
-                                sleepUntil(10000, () -> helper.inArea(WATERFALL_DUNGEON_ENTRANCE));
+                                sleepUntil(10000, () -> inArea(WATERFALL_DUNGEON_ENTRANCE));
                             }
-                        } else if (helper.interactInventory("Rope", "Use")) {
+                        } else if (interactInventory("Rope", "Use")) {
                             info("Interacting rope: Use");
                             sleepUntil(4000, () -> getBot().getInventory().isSelected(i -> i.hasName("Rope")));
                         }
-                    } else if (helper.inArea(WATERFALL_DUNGEON_ENTRANCE)) {
-                        if (helper.interactObject("Barrel", "Get in")) {
+                    } else if (inArea(WATERFALL_DUNGEON_ENTRANCE)) {
+                        if (interactObject("Barrel", "Get in")) {
                             info("Interact barrel: get in");
-                            sleepUntil(15000, () -> helper.myPosition().getY() == 3413);
+                            sleepUntil(15000, () -> myPosition().getY() == 3413);
                         }
-                    } else if (!talkedToHadley && helper.inArea(HOUSE_HADLEY_AREA)) {
-                        if (helper.talkTo("Hadley")) {
+                    } else if (!talkedToHadley && inArea(HOUSE_HADLEY_AREA)) {
+                        if (talkTo("Hadley")) {
                             talkedToHadley = true;
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         }
-                    } else if (helper.inArea(HOUSE_HADLEY_AREA) || helper.inArea(HOUSE_HADLEY_BOOK_ROOM)) {
-                        if (helper.inArea(HOUSE_HADLEY_BOOK_ROOM)) {
+                    } else if (inArea(HOUSE_HADLEY_AREA) || inArea(HOUSE_HADLEY_BOOK_ROOM)) {
+                        if (inArea(HOUSE_HADLEY_BOOK_ROOM)) {
                             if (getBot().getInventory().contains("Book on baxtorian")) {
-                                if (helper.interactInventory("Book on baxtorian", "Read")) {
+                                if (interactInventory("Book on baxtorian", "Read")) {
                                     sleep(2200);
-                                    if (helper.interactInventory("Lobster", "Eat"))
+                                    if (interactInventory("Lobster", "Eat"))
                                         sleep(1200);
                                 }
-                            } else if (helper.interactObject(o -> o != null && o.hasName("Bookcase")
+                            } else if (interactObject(o -> o != null && o.hasName("Bookcase")
                                     && o.getTile().getY() == 3426, "Search")) {
                                 sleepUntil(3000, () -> getBot().getInventory().contains("Book on baxtorian"));
                             }
                         } else {
-                            helper.getWeb(HOUSE_HADLEY_BOOK_ROOM).execute();
+                            getWeb(HOUSE_HADLEY_BOOK_ROOM).execute();
                         }
                     } else {
-                        helper.getWeb(HOUSE_HADLEY_AREA).execute();
+                        getWeb(HOUSE_HADLEY_AREA).execute();
                     }
                     break;
                 case 3:
                     if (!getBot().getInventory().contains("Glarial's pebble")) {
                         if (!getBot().getInventory().contains("A key")) {
-                            if (helper.inArea(MAZE_DUNGEON_KEY_ROOM)) {
+                            if (inArea(MAZE_DUNGEON_KEY_ROOM)) {
                                 info("Grabbing key");
-                                if (helper.interactObject(o -> o != null && o.hasAction("Search")
+                                if (interactObject(o -> o != null && o.hasAction("Search")
                                         && o.hasName("Crate") && o.getTile().equals(new Tile(2548, 9565, 0)), "Search")) {
                                     sleepUntil(4000, () -> getBot().getInventory().contains("A key"));
                                 }
                             } else {
                                 info("Walking to key room");
-                                helper.getWeb(new Tile(2548, 9566, 0)).setDestinationAccuracy(0).execute();
+                                getWeb(new Tile(2548, 9566, 0)).setDestinationAccuracy(0).execute();
                             }
                         } else {
-                            if (helper.inArea(MAZE_DUNGEON_PEBBLE_ROOM)) {
+                            if (inArea(MAZE_DUNGEON_PEBBLE_ROOM)) {
                                 info("Grabbing pebble");
-                                if (helper.talkTo("Golrie")) {
+                                if (talkTo("Golrie")) {
                                     sleepUntil(4000, () -> getBot().getDialogues().inDialogue());
                                 }
-                            } else if (helper.inArea(MAZE_DUNGEON_LOCKED_DOOR_ROOM)) {
+                            } else if (inArea(MAZE_DUNGEON_LOCKED_DOOR_ROOM)) {
                                 info("Unlocking door");
-                                if (helper.useOnObject("Door", "A key")) {
-                                    sleepUntil(3000, () -> helper.inArea(MAZE_DUNGEON_PEBBLE_ROOM));
+                                if (useOnObject("Door", "A key")) {
+                                    sleepUntil(3000, () -> inArea(MAZE_DUNGEON_PEBBLE_ROOM));
                                 }
                             } else {
                                 info("Walking to locked door with key.");
-                                helper.getWeb(new Tile(2515, 9575, 0)).execute();
+                                getWeb(new Tile(2515, 9575, 0)).execute();
                             }
                         }
-                    } else if (helper.inArea(GLARIAL_TOMBSTONE_AREA)) {
+                    } else if (inArea(GLARIAL_TOMBSTONE_AREA)) {
                         info("At the tomb");
-                        if (helper.useOnObject("Glarial's tombstone", "Glarial's pebble"))
-                            sleepUntil(10000, () -> !helper.inArea(GLARIAL_TOMBSTONE_AREA));
+                        if (useOnObject("Glarial's tombstone", "Glarial's pebble"))
+                            sleepUntil(10000, () -> !inArea(GLARIAL_TOMBSTONE_AREA));
                     } else {
                         info("Walking to glarials tomb");
-                        helper.getWeb(GLARIAL_TOMBSTONE_AREA).execute();
+                        getWeb(GLARIAL_TOMBSTONE_AREA).execute();
                     }
                     break;
                 case 4:
@@ -281,47 +278,47 @@ public class WaterfallEvent extends BotEvent implements Logger {
                             return;
                         }
 
-                        if (helper.myPosition().getY() < 9000 || helper.inArea(MAZE_DUNGEON_PEBBLE_ROOM)) {
-                            if (helper.inArea(GLARIAL_TOMBSTONE_AREA)) {
+                        if (myPosition().getY() < 9000 || inArea(MAZE_DUNGEON_PEBBLE_ROOM)) {
+                            if (inArea(GLARIAL_TOMBSTONE_AREA)) {
                                 info("At the tomb");
-                                if (helper.useOnObject("Glarial's tombstone", "Glarial's pebble"))
-                                    sleepUntil(10000, () -> !helper.inArea(GLARIAL_TOMBSTONE_AREA));
+                                if (useOnObject("Glarial's tombstone", "Glarial's pebble"))
+                                    sleepUntil(10000, () -> !inArea(GLARIAL_TOMBSTONE_AREA));
                             } else {
                                 info("Walking to glarials tomb");
-                                helper.getWeb(GLARIAL_TOMBSTONE_AREA).execute();
+                                getWeb(GLARIAL_TOMBSTONE_AREA).execute();
                             }
                         } else {
                             info("Inside dungeon");
                             if (!gotAmulet) {
-                                if (helper.inArea(GLARIAL_DUNGEON_AMULET_ROOM)) {
+                                if (inArea(GLARIAL_DUNGEON_AMULET_ROOM)) {
                                     info("Grabbing amulet");
-                                    if (helper.interactObject("Closed chest", "Open"))
+                                    if (interactObject("Closed chest", "Open"))
                                         sleep(1000);
 
-                                    if (helper.interactObject("Open chest", "Search")) {
+                                    if (interactObject("Open chest", "Search")) {
                                         gotAmulet = true;
                                         sleepUntil(3000, () -> getBot().getInventory().contains("Glarial's amulet"));
                                     }
                                 } else {
                                     info("Walking to glarials amulet room");
-                                    helper.getWeb(GLARIAL_DUNGEON_AMULET_ROOM).execute();
+                                    getWeb(GLARIAL_DUNGEON_AMULET_ROOM).execute();
                                 }
                             } else if (!gotUrn) {
-                                if (helper.inArea(GLARIAL_DUNGEON_URN_ROOM)) {
+                                if (inArea(GLARIAL_DUNGEON_URN_ROOM)) {
                                     info("Grabbing urn");
-                                    if (helper.interactObject("Glarial's tomb", "Search")) {
+                                    if (interactObject("Glarial's tomb", "Search")) {
                                         gotUrn = true;
                                         sleepUntil(4000, () -> getBot().getInventory().contains("Glarial's urn"));
                                     }
                                 } else {
                                     info("Walking to glarials urn room");
-                                    helper.getWeb(GLARIAL_DUNGEON_URN_ROOM).execute();
+                                    getWeb(GLARIAL_DUNGEON_URN_ROOM).execute();
                                 }
                             }
                         }
-                    } else if (helper.inArea(GLARIAL_DUNGEON_URN_ROOM) && gotUrn) {
+                    } else if (inArea(GLARIAL_DUNGEON_URN_ROOM) && gotUrn) {
                         info("Leaving dungeon.");
-                        helper.getWeb(Bank.BARBARIAN_ASSAULT_BANK.getArea()).execute();
+                        getWeb(Bank.BARBARIAN_ASSAULT_BANK.getArea()).execute();
                     } else if (!getBot().getInventory().containsAll("Earth rune", "Water rune", "Air rune")) {
                         info("Need to grab runes");
                         if (!getBot().getBank().isOpen())
@@ -338,34 +335,34 @@ public class WaterfallEvent extends BotEvent implements Logger {
                                 new WithdrawEvent(getBot(), "Water rune", 6).executed();
                         }
                     } else {
-                        if (helper.inArea(WATERFALL_DUNGEON_ENTRANCE)) {
-                            if (helper.interactObject("Ledge", "Open")) {
+                        if (inArea(WATERFALL_DUNGEON_ENTRANCE)) {
+                            if (interactObject("Ledge", "Open")) {
                                 info("Entering dungeon.");
-                                sleepUntil(10000, () -> !helper.inArea(WATERFALL_DUNGEON_ENTRANCE));
+                                sleepUntil(10000, () -> !inArea(WATERFALL_DUNGEON_ENTRANCE));
                             }
-                        } else if (helper.inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA)) {
+                        } else if (inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA)) {
                             if (getBot().getInventory().isSelected(i -> i.hasName("Rope"))) {
-                                if (helper.interactObject("Dead tree", "Use")) {
+                                if (interactObject("Dead tree", "Use")) {
                                     info("Use rope on dead tree");
-                                    sleepUntil(10000, () -> helper.inArea(WATERFALL_DUNGEON_ENTRANCE));
+                                    sleepUntil(10000, () -> inArea(WATERFALL_DUNGEON_ENTRANCE));
                                 }
-                            } else if (helper.interactInventory("Rope", "Use")) {
+                            } else if (interactInventory("Rope", "Use")) {
                                 info("Interacting rope: Use");
                                 sleepUntil(4000, () -> getBot().getInventory().isSelected(i -> i.hasName("Rope")));
                             }
-                        } else if (helper.inArea(ROPE_ON_ROCK_AREA)) {
+                        } else if (inArea(ROPE_ON_ROCK_AREA)) {
                             if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Rope"))) {
                                 info("Rope selected..interacting rock.");
-                                if (helper.interactObject(o -> o != null && o.hasAction("Swim to")
+                                if (interactObject(o -> o != null && o.hasAction("Swim to")
                                         && o.hasName("Rock") && o.getTile().getY() == 3468, "Use")) {
                                     info("Going across the water: Use rope on rock");
-                                    sleepUntil(10000, () -> helper.inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA));
+                                    sleepUntil(10000, () -> inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA));
                                 }
-                            } else if (helper.interactInventory("Rope", "Use")) {
+                            } else if (interactInventory("Rope", "Use")) {
                                 info("Interacting rope: Use");
                                 sleepUntil(4000, () -> getBot().getInventory().isSelected(i -> i.hasName("Rope")));
                             }
-                        } else if (helper.inArea(RAFT_AREA)) {
+                        } else if (inArea(RAFT_AREA)) {
                             closedGate = getBot().getGameObjects().closest(o -> o != null && o.hasName("Gate")
                                     && o.hasAction("Open") && o.getTile().getX() == 2513 && o.getTile().getTile().getY() == 3494);
 
@@ -374,43 +371,43 @@ public class WaterfallEvent extends BotEvent implements Logger {
                                 if (new InteractEvent(getBot(), closedGate, "Open").executed()) {
                                     sleepUntil(3000, () -> !closedGate.exists());
                                 }
-                            } else if (helper.interactObject("Log raft", "Board")) {
+                            } else if (interactObject("Log raft", "Board")) {
                                 info("Boarding raft");
-                                sleepUntil(13000, () -> helper.inArea(ROPE_ON_ROCK_AREA));
+                                sleepUntil(13000, () -> inArea(ROPE_ON_ROCK_AREA));
                             }
                         } else {
                             info("Walking to raft.");
-                            helper.getWeb(RAFT_AREA).execute();
+                            getWeb(RAFT_AREA).execute();
                         }
                     }
                     break;
                 case 5:
                     // Crate, Search, 2589 9888, 0
                     if (!getBot().getInventory().contains("A key")) {
-                        if (helper.inArea(WATERFALL_DUNGEON_KEY_ROOM)) {
+                        if (inArea(WATERFALL_DUNGEON_KEY_ROOM)) {
                             info("Grabbing key");
-                            if (helper.interactObject(c -> c != null && c.hasName("Crate")
+                            if (interactObject(c -> c != null && c.hasName("Crate")
                                     && c.getTile().equals(new Tile(2589, 9888, 0)), "Search")) {
                                 sleepUntil(3000, () -> getBot().getInventory().contains("A key"));
                             }
                         } else {
-                            helper.getWeb(new Tile(2589, 9887, 0)).execute();
+                            getWeb(new Tile(2589, 9887, 0)).execute();
                         }
-                    } else if (helper.inArea(WATERFALL_DUNGEON_MIDDLE_ROOM)) {
+                    } else if (inArea(WATERFALL_DUNGEON_MIDDLE_ROOM)) {
                         info("Walking to end room.");
-                        helper.getWeb(new Tile(2566, 9901, 0)).execute();
+                        getWeb(new Tile(2566, 9901, 0)).execute();
                         sleep(1000);
-                        if (helper.useOnObject("Door", "A key")) {
-                            sleepUntil(3000, () -> helper.inArea(WATERFALL_DUNGEON_MIDDLE_ROOM));
+                        if (useOnObject("Door", "A key")) {
+                            sleepUntil(3000, () -> inArea(WATERFALL_DUNGEON_MIDDLE_ROOM));
                         }
-                    } else if (helper.inArea(WATERFALL_DUNGEON_LOCKED_DOOR)) {
+                    } else if (inArea(WATERFALL_DUNGEON_LOCKED_DOOR)) {
                         info("Opening locked door.");
-                        if (helper.useOnObject("Door", "A key")) {
-                            sleepUntil(3000, () -> helper.inArea(WATERFALL_DUNGEON_MIDDLE_ROOM));
+                        if (useOnObject("Door", "A key")) {
+                            sleepUntil(3000, () -> inArea(WATERFALL_DUNGEON_MIDDLE_ROOM));
                         }
                     } else {
                         info("Walking to locked door.");
-                        helper.getWeb(WATERFALL_DUNGEON_LOCKED_DOOR_TILE).execute();
+                        getWeb(WATERFALL_DUNGEON_LOCKED_DOOR_TILE).execute();
                     }
                     break;
                 case 6:
@@ -419,32 +416,32 @@ public class WaterfallEvent extends BotEvent implements Logger {
                         while (index < PILLAR_LOCATIONS.length) {
                             int finalIndex = index;
                             Predicate<GameObject> gameObjectPredicate = o -> o != null && o.getTile().equals(PILLAR_LOCATIONS[finalIndex]);
-                            if (PILLAR_LOCATIONS[finalIndex].distance(helper.myPosition()) > 2)
-                                helper.getWeb(PILLAR_LOCATIONS[finalIndex].translate(0, -1)).execute();
+                            if (PILLAR_LOCATIONS[finalIndex].distance(myPosition()) > 2)
+                                getWeb(PILLAR_LOCATIONS[finalIndex].translate(0, -1)).execute();
 
                             info("Using piller at: " + PILLAR_LOCATIONS[index].toString());
-                            if (helper.useOnObject(gameObjectPredicate, "Air rune")) {
+                            if (useOnObject(gameObjectPredicate, "Air rune")) {
                                 info("Used: Air rune x1");
                                 sleep(1000);
                             }
-                            if (helper.useOnObject(gameObjectPredicate, "Earth rune")) {
+                            if (useOnObject(gameObjectPredicate, "Earth rune")) {
                                 info("Used: Earth rune x1");
                                 sleep(1000);
                             }
-                            if (helper.useOnObject(gameObjectPredicate, "Water rune")) {
+                            if (useOnObject(gameObjectPredicate, "Water rune")) {
                                 info("Used: Water rune x1");
                                 sleep(1000);
                                 index++;
                             }
                         }
                     } else if (getBot().getInventory().contains("Glarial's amulet")) {
-                        if (helper.useOnObject("Statue of Glarial", "Glarial's amulet")) {
+                        if (useOnObject("Statue of Glarial", "Glarial's amulet")) {
                             sleepUntil(12000, () -> !getBot().getInventory().contains("Glarial's amulet"));
                         }
                     }
                     break;
                 case 8:
-                    if (helper.useOnObject("Chalice of Eternity", "Glarial's urn")) {
+                    if (useOnObject("Chalice of Eternity", "Glarial's urn")) {
                         sleepUntil(7000, () -> getBot().getInventory().contains("Gold bar"));
                     }
                     break;
@@ -461,6 +458,6 @@ public class WaterfallEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 }

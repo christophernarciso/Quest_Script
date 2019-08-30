@@ -5,17 +5,16 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.Quest;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.EnterAmountEvent;
 import org.quantumbot.events.containers.InventoryInteractEvent;
 import org.quantumbot.events.interactions.InteractEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 
-public class DeathPlateauEvent extends BotEvent implements Logger {
+public class DeathPlateauEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "Do you have any quests for me?", "No but perhaps I could try and find one?", "I'm looking for the guard that was on last night.",
@@ -75,13 +74,10 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
     private final Area NINTH_STAGE_AREA = new Area(2814, 3562, 2821, 3558);
     private int grabStart = 3561, index = 0;
     private boolean shouldGrabBalls = true, shouldTalkToGuard = true, shouldTalkToSaba = true, shouldTalkToDunstan = true, shouldFindPath = true;
-
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public DeathPlateauEvent(QuantumBot bot, HelperMethods helper) {
+    public DeathPlateauEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -95,28 +91,28 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
         itemReq.put("Premade blurb' sp.", 1);
         itemReq.put("Games necklace(1~8)", 1);
         info("Started: " + Quest.DEATH_PLATEAU.name());
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(314);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
-                helper.setGrabbedItems(helper.getBankEvent(itemReq).executed());
+                setGrabbedItems(getBankEvent(itemReq).executed());
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -141,7 +137,7 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
                         new DialogueEvent(getBot(), "Can I buy you a drink?").execute();
                     else
                         new DialogueEvent(getBot(), "Would you like to gamble?").execute();
-                } else if (result == 70 && helper.inArea(SIXTH_STAGE_PART_TWO_AREA)) {
+                } else if (result == 70 && inArea(SIXTH_STAGE_PART_TWO_AREA)) {
                     info("Selecting result 70 dialogue");
                     new DialogueEvent(getBot(), "Do you know of another way up Death Plateau?").execute();
                 } else {
@@ -156,56 +152,56 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
             switch (result) {
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
-                        if (helper.talkTo("Denulth"))
+                    if (inArea(START_AREA)) {
+                        if (talkTo("Denulth"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Walk to quest start");
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
                 case 10:
                     // After accepting quest & now find eohric to talk about the guard
-                    if (helper.inArea(SECOND_STAGE_AREA)) {
-                        if (helper.talkTo("Eohric"))
+                    if (inArea(SECOND_STAGE_AREA)) {
+                        if (talkTo("Eohric"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(SECOND_STAGE_AREA).execute();
+                        getWeb(SECOND_STAGE_AREA).execute();
                     }
                     break;
                 case 20:
                     // Head to the guard and ask for combination
                     sleep(1000);
-                    if (helper.inArea(THIRD_STAGE_PART_TWO_AREA)) {
-                        if (helper.talkTo("Harold"))
+                    if (inArea(THIRD_STAGE_PART_TWO_AREA)) {
+                        if (talkTo("Harold"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                    } else if (helper.inArea(THIRD_STAGE_AREA)) {
-                        if (helper.interactObject(o -> o != null && o.hasAction("Open") && o.getTile().getX() == 2906, "Open"))
+                    } else if (inArea(THIRD_STAGE_AREA)) {
+                        if (interactObject(o -> o != null && o.hasAction("Open") && o.getTile().getX() == 2906, "Open"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(THIRD_STAGE_AREA).execute();
+                        getWeb(THIRD_STAGE_AREA).execute();
                     }
                     break;
                 case 30:
                     // Head back to eohric after guard refuses to talk
-                    if (helper.inArea(SECOND_STAGE_AREA)) {
-                        if (helper.talkTo("Eohric"))
+                    if (inArea(SECOND_STAGE_AREA)) {
+                        if (talkTo("Eohric"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(SECOND_STAGE_AREA).execute();
+                        getWeb(SECOND_STAGE_AREA).execute();
                     }
                     break;
                 case 40:
                     // Head back to the guard after talking to eohric
                     sleep(1000);
-                    if (helper.inArea(THIRD_STAGE_PART_TWO_AREA)) {
-                        if (helper.talkTo("Harold"))
+                    if (inArea(THIRD_STAGE_PART_TWO_AREA)) {
+                        if (talkTo("Harold"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                    } else if (helper.inArea(THIRD_STAGE_AREA)) {
-                        if (helper.interactObject(o -> o != null && o.hasAction("Open") && o.getTile().getX() == 2906, "Open"))
+                    } else if (inArea(THIRD_STAGE_AREA)) {
+                        if (interactObject(o -> o != null && o.hasAction("Open") && o.getTile().getX() == 2906, "Open"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(THIRD_STAGE_AREA).execute();
+                        getWeb(THIRD_STAGE_AREA).execute();
                     }
                     break;
                 case 50:
@@ -222,37 +218,37 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
                         Widget rollDice = getBot().getWidgets().first(w -> w != null && w.isVisible() && w.getText() != null && w.getText().equals("Roll Dice!"));
                         Widget continueGambling = getBot().getWidgets().first(w -> w != null && w.isVisible() && w.getText() != null && w.getText().equals("Continue..."));
                         if (rollDice != null && rollDice.isVisible()) {
-                            if (helper.getInteractEvent(rollDice, "Ok").executed())
+                            if (getInteractEvent(rollDice, "Ok").executed())
                                 sleepUntil(10000, () -> getBot().getWidgets().first(w -> w != null && w.isVisible() && w.getText() != null && w.getText().equals("You win!")) != null);
                         } else if (continueGambling != null && continueGambling.isVisible()) {
-                            if (helper.getInteractEvent(continueGambling, "Ok").executed())
+                            if (getInteractEvent(continueGambling, "Ok").executed())
                                 sleepUntil(5000, () -> getBot().getDialogues().isPendingContinuation());
                         }
                     } else {
-                        if (helper.talkTo("Harold"))
+                        if (talkTo("Harold"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     }
                     break;
                 case 55:
                     // For more room for the combination unlock
                     if (getBot().getInventory().contains("Coins"))
-                        helper.interactInventory("Coins", "Drop");
+                        interactInventory("Coins", "Drop");
 
                     // Won the gambling & have IOU note
-                    if (getBot().getInventory().contains("Iou") && helper.interactInventory("Iou", "Read")) {
+                    if (getBot().getInventory().contains("Iou") && interactInventory("Iou", "Read")) {
                         sleepUntil(5000, () -> getBot().getDialogues().isPendingContinuation());
                     }
                     break;
                 case 60:
                     // Have combination -> grab stone balls -> do combination
-                    if (helper.inArea(FOURTH_STAGE_AREA)) {
+                    if (inArea(FOURTH_STAGE_AREA)) {
                         if (shouldGrabBalls) {
                             if (grabStart == 3566 || getBot().getInventory().isFull())
                                 shouldGrabBalls = false;
                             else {
                                 info("Grabbing stone balls");
                                 int last = getBot().getInventory().getEmptySlots();
-                                if (helper.interactGroundItem(o -> o != null &&
+                                if (interactGroundItem(o -> o != null &&
                                         o.getName().equals("Stone ball") && o.getTile().getY() == grabStart, "Take")) {
                                     sleepUntil(10000, () -> getBot().getInventory().getEmptySlots() < last);
                                     grabStart++;
@@ -263,7 +259,7 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
                             if (getBot().getInventory().isSelected(i -> i.getId() == COMBINATION_ID[index])) {
                                 info("ball selected.");
                                 int last = getBot().getInventory().getEmptySlots();
-                                if (helper.interactObject(o -> o != null && o.getName().equals("Stone Mechanism") && o.getTile().equals(COMBINATION_TILES[index]), "Use")) {
+                                if (interactObject(o -> o != null && o.getName().equals("Stone Mechanism") && o.getTile().equals(COMBINATION_TILES[index]), "Use")) {
                                     sleepUntil(10000, () -> getBot().getInventory().getEmptySlots() > last);
                                     index++;
                                     sleep(600);
@@ -275,89 +271,89 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
                             }
                         }
                     } else {
-                        helper.getWeb(new Tile(2896, 3563, 0)).execute();
+                        getWeb(new Tile(2896, 3563, 0)).execute();
                     }
                     break;
                 case 70:
                     // Talk to guard archer, saba, tenzing, dunstan, denulth, tenzing, denulth. in order.. | code is in reverse order depending on flags or items obtained.
                     if (getBot().getInventory().contains("Secret way map")) {
-                        if (helper.inArea(SEVENTH_STAGE_AREA)) {
-                            if (helper.interactObject(o -> o != null && o.getName().equals("Door") && o.getTile().getX() == 2820, "Open"))
-                                sleepUntil(7000, () -> helper.inArea(NINTH_STAGE_AREA));
-                        } else if (helper.inArea(NINTH_STAGE_AREA)) {
-                            if (helper.interactObject("Stile", "Climb-over"))
-                                sleepUntil(7000, () -> !helper.inArea(NINTH_STAGE_AREA));
+                        if (inArea(SEVENTH_STAGE_AREA)) {
+                            if (interactObject(o -> o != null && o.getName().equals("Door") && o.getTile().getX() == 2820, "Open"))
+                                sleepUntil(7000, () -> inArea(NINTH_STAGE_AREA));
+                        } else if (inArea(NINTH_STAGE_AREA)) {
+                            if (interactObject("Stile", "Climb-over"))
+                                sleepUntil(7000, () -> !inArea(NINTH_STAGE_AREA));
                         } else {
                             if (shouldFindPath) {
-                                if (helper.getWeb(new Tile(2865, 3609, 0)).executed())
+                                if (getWeb(new Tile(2865, 3609, 0)).executed())
                                     shouldFindPath = false;
                             } else {
-                                if (helper.inArea(START_AREA)) {
-                                    if (helper.talkTo("Denulth"))
+                                if (inArea(START_AREA)) {
+                                    if (talkTo("Denulth"))
                                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                                 } else {
-                                    helper.getWeb(START_AREA).execute();
+                                    getWeb(START_AREA).execute();
                                 }
                             }
                         }
                     } else if (getBot().getInventory().contains("Certificate")) {
-                        if (helper.inArea(EIGHTH_STAGE_AREA)) {
-                            if (helper.talkTo("Dunstan")) {
+                        if (inArea(EIGHTH_STAGE_AREA)) {
+                            if (talkTo("Dunstan")) {
                                 sleepUntil(5000, () -> getBot().getDialogues().isPendingContinuation());
                             }
                         } else {
-                            helper.getWeb(EIGHTH_STAGE_AREA).execute();
+                            getWeb(EIGHTH_STAGE_AREA).execute();
                         }
                     } else if (getBot().getInventory().contains("Climbing boots")) {
                         if (shouldTalkToDunstan) {
-                            if (helper.inArea(EIGHTH_STAGE_AREA)) {
-                                if (helper.talkTo("Dunstan")) {
+                            if (inArea(EIGHTH_STAGE_AREA)) {
+                                if (talkTo("Dunstan")) {
                                     sleepUntil(5000, () -> getBot().getDialogues().isPendingContinuation());
                                     shouldTalkToDunstan = false;
                                 }
                             } else {
-                                helper.getWeb(EIGHTH_STAGE_AREA).execute();
+                                getWeb(EIGHTH_STAGE_AREA).execute();
                             }
                         } else {
-                            if (helper.inArea(START_AREA)) {
-                                if (helper.talkTo("Denulth"))
+                            if (inArea(START_AREA)) {
+                                if (talkTo("Denulth"))
                                     sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             } else {
-                                helper.getWeb(START_AREA).execute();
+                                getWeb(START_AREA).execute();
                             }
                         }
                     } else if (shouldTalkToGuard) {
-                        if (helper.inArea(FIFTH_STAGE_AREA)) {
-                            if (helper.talkTo("Archer")) {
+                        if (inArea(FIFTH_STAGE_AREA)) {
+                            if (talkTo("Archer")) {
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                                 shouldTalkToGuard = false;
                             }
                         } else {
-                            helper.getWeb(FIFTH_STAGE_AREA).execute();
+                            getWeb(FIFTH_STAGE_AREA).execute();
                         }
                     } else if (shouldTalkToSaba) {
-                        if (helper.inArea(SIXTH_STAGE_PART_TWO_AREA)) {
-                            if (helper.talkTo("Saba")) {
+                        if (inArea(SIXTH_STAGE_PART_TWO_AREA)) {
+                            if (talkTo("Saba")) {
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                                 shouldTalkToSaba = false;
                             }
-                        } else if (helper.inArea(SIXTH_STAGE_AREA)) {
-                            if (helper.interactObject("Cave Entrance", "Enter"))
-                                sleepUntil(7000, () -> helper.inArea(SIXTH_STAGE_PART_TWO_AREA));
+                        } else if (inArea(SIXTH_STAGE_AREA)) {
+                            if (interactObject("Cave Entrance", "Enter"))
+                                sleepUntil(7000, () -> inArea(SIXTH_STAGE_PART_TWO_AREA));
                         } else {
-                            helper.getWeb(SIXTH_STAGE_AREA).execute();
+                            getWeb(SIXTH_STAGE_AREA).execute();
                         }
                     } else {
-                        if (helper.inArea(SEVENTH_STAGE_AREA)) {
-                            if (helper.talkTo("Tenzing")) {
+                        if (inArea(SEVENTH_STAGE_AREA)) {
+                            if (talkTo("Tenzing")) {
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             }
                         } else { // If we have spiked boots our logic should return back here
-                            if (helper.inArea(SIXTH_STAGE_PART_TWO_AREA)) {
-                                if (helper.interactObject("Cave Exit", "Exit"))
-                                    sleepUntil(7000, () -> helper.inArea(SIXTH_STAGE_AREA));
+                            if (inArea(SIXTH_STAGE_PART_TWO_AREA)) {
+                                if (interactObject("Cave Exit", "Exit"))
+                                    sleepUntil(7000, () -> inArea(SIXTH_STAGE_AREA));
                             } else {
-                                helper.getWeb(SEVENTH_STAGE_AREA).setInterruptCondition(() -> getBot().getDialogues().isPendingContinuation()).execute();
+                                getWeb(SEVENTH_STAGE_AREA).setInterruptCondition(() -> getBot().getDialogues().isPendingContinuation()).execute();
                             }
                         }
                     }
@@ -374,6 +370,6 @@ public class DeathPlateauEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 }

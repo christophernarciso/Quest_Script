@@ -5,15 +5,14 @@ import org.quantumbot.api.entities.GameObject;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.Quest;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.ItemCombineEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 
-public class PlagueCityEvent extends BotEvent implements Logger {
+public class PlagueCityEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "What's happened to her?", "Can I help find her?", "Hi, I'm looking for a woman from East Ardougne.",
@@ -34,12 +33,10 @@ public class PlagueCityEvent extends BotEvent implements Logger {
     private final Area MAN_HOLE_AREA = new Area(2525, 3306, 2535, 3300);
     private boolean askedToPull;
 
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public PlagueCityEvent(QuantumBot bot, HelperMethods helper) {
+    public PlagueCityEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -54,7 +51,7 @@ public class PlagueCityEvent extends BotEvent implements Logger {
         itemReq.put("Snape grass", 1);
         itemReq.put("Camelot teleport", 2);
         info("Started: " + Quest.PLAGUE_CITY.name());
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
         askedToPull = false;
     }
 
@@ -62,21 +59,21 @@ public class PlagueCityEvent extends BotEvent implements Logger {
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(165);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
-                helper.setGrabbedItems(helper.getBankEvent(itemReq).executed());
+                setGrabbedItems(getBankEvent(itemReq).executed());
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -102,26 +99,26 @@ public class PlagueCityEvent extends BotEvent implements Logger {
                     // Return to Edmond
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
+                    if (inArea(START_AREA)) {
                         info("Talking to Edmond");
-                        if (helper.talkTo("Edmond"))
+                        if (talkTo("Edmond"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Walking to Edmond");
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
                 case 1:
                     if (!getBot().getInventory().contains("Picture")) {
-                        if (helper.inArea(PAINTING_AREA)) {
+                        if (inArea(PAINTING_AREA)) {
                             info("Grabbing picture");
-                            if (helper.interactGroundItem("Picture", "Take"))
+                            if (interactGroundItem("Picture", "Take"))
                                 sleepUntil(3000, () -> getBot().getInventory().contains("Picture"));
                         } else {
                             info("Walking to picture");
-                            helper.getWeb(PAINTING_AREA).execute();
+                            getWeb(PAINTING_AREA).execute();
                         }
-                    } else if (helper.talkTo("Alrena")) {
+                    } else if (talkTo("Alrena")) {
                         info("Talking to Alrena");
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     }
@@ -134,19 +131,19 @@ public class PlagueCityEvent extends BotEvent implements Logger {
                     // Keep putting buckets
                 case 3:
                     info("Add water to mud patch");
-                    if (helper.useOnObject("Mud patch", "Bucket of water"))
+                    if (useOnObject("Mud patch", "Bucket of water"))
                         sleepGameCycle();
                     break;
                 case 7:
                     info("Dig into patch");
-                    if (helper.useOnObject("Mud patch", "Spade"))
+                    if (useOnObject("Mud patch", "Spade"))
                         sleepUntil(4000, () -> getBot().getDialogues().inDialogue());
                     break;
                 case 8:
                     info("Attempt to open grill");
-                    if (helper.interactObject("Grill", "Open")) {
+                    if (interactObject("Grill", "Open")) {
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                        if (helper.useOnObject("Grill", "Rope"))
+                        if (useOnObject("Grill", "Rope"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     }
                     break;
@@ -155,91 +152,91 @@ public class PlagueCityEvent extends BotEvent implements Logger {
                         info("Waiting...");
                         sleepGameCycle();
                         return;
-                    } else if (helper.talkTo("Edmond")) {
+                    } else if (talkTo("Edmond")) {
                         sleepUntil(5000, () -> getBot().getDialogues().inDialogue());
                         askedToPull = true;
                     } else {
                         info("Walking closer to Edmond");
-                        helper.getWeb(new Tile(2517, 9748, 0)).execute();
+                        getWeb(new Tile(2517, 9748, 0)).execute();
                     }
                     break;
                 case 10:
                     if (getBot().getInventory().contains("Gas mask")) {
                         info("Wearing gas mask");
-                        if (helper.interactInventory("Gas mask", "Wear")) {
+                        if (interactInventory("Gas mask", "Wear")) {
                             sleepUntil(3000, () -> !getBot().getInventory().contains("Gas mask"));
                         }
-                    } else if (helper.myPosition().getY() > 9000) {
+                    } else if (myPosition().getY() > 9000) {
                         info("Leaving sewer");
-                        if (helper.interactObject("Pipe", "Climb-up")) {
-                            sleepUntil(10000, () -> helper.myPosition().getY() < 9000);
+                        if (interactObject("Pipe", "Climb-up")) {
+                            sleepUntil(10000, () -> myPosition().getY() < 9000);
                         }
-                    } else if (helper.talkTo("Jethick")) {
+                    } else if (talkTo("Jethick")) {
                         info("Talking to Jethick");
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     }
                     break;
                 case 20:
-                    if (helper.inArea(REHNISON_HOUSE_ENTRANCE_AREA)) {
+                    if (inArea(REHNISON_HOUSE_ENTRANCE_AREA)) {
                         info("At entrance");
-                        if (helper.interactObject("Door", "Open"))
+                        if (interactObject("Door", "Open"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Walking to rehnison house");
-                        helper.getWeb(REHNISON_HOUSE_ENTRANCE_AREA).execute();
+                        getWeb(REHNISON_HOUSE_ENTRANCE_AREA).execute();
                     }
                     break;
                 case 21:
                     info("Talking to Ted");
-                    if (helper.talkTo("Ted Rehnison"))
+                    if (talkTo("Ted Rehnison"))
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     break;
                 case 22:
-                    if (helper.inArea(REHNISON_HOUSE_TOP_FLOOR_AREA)) {
+                    if (inArea(REHNISON_HOUSE_TOP_FLOOR_AREA)) {
                         info("Talking to mili");
-                        if (helper.talkTo("Milli Rehnison"))
+                        if (talkTo("Milli Rehnison"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                    } else if (helper.interactObject("Stairs", "Walk-up")) {
+                    } else if (interactObject("Stairs", "Walk-up")) {
                         info("Going upstairs");
-                        sleepUntil(4000, () -> helper.inArea(REHNISON_HOUSE_TOP_FLOOR_AREA));
+                        sleepUntil(4000, () -> inArea(REHNISON_HOUSE_TOP_FLOOR_AREA));
                     }
                     break;
                 case 23:
-                    if (helper.inArea(REHNISON_HOUSE_TOP_FLOOR_AREA)) {
-                        if (helper.interactObject("Stairs", "Walk-down")) {
+                    if (inArea(REHNISON_HOUSE_TOP_FLOOR_AREA)) {
+                        if (interactObject("Stairs", "Walk-down")) {
                             info("Going downstairs");
-                            sleepUntil(4000, () -> !helper.inArea(REHNISON_HOUSE_TOP_FLOOR_AREA));
+                            sleepUntil(4000, () -> !inArea(REHNISON_HOUSE_TOP_FLOOR_AREA));
                         }
-                    } else if (helper.inArea(PLAGUE_HOUSE_ENTRANCE_AREA)) {
+                    } else if (inArea(PLAGUE_HOUSE_ENTRANCE_AREA)) {
                         info("Attempt to enter plague house");
-                        if (helper.interactObject("Door", "Open")) {
+                        if (interactObject("Door", "Open")) {
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         }
                     } else {
                         info("Walking to plague house");
-                        helper.getWeb(PLAGUE_HOUSE_ENTRANCE_AREA).execute();
+                        getWeb(PLAGUE_HOUSE_ENTRANCE_AREA).execute();
                     }
                     break;
                 case 24:
-                    if (helper.inArea(BRAVEK_HOUSE_ENTRANCE_AREA)) {
+                    if (inArea(BRAVEK_HOUSE_ENTRANCE_AREA)) {
                         info("Attempt to enter bravek room");
-                        if (helper.talkTo("Clerk")) {
+                        if (talkTo("Clerk")) {
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         }
                     } else {
                         info("Walking to bravek house");
-                        helper.getWeb(BRAVEK_HOUSE_ENTRANCE_AREA).execute();
+                        getWeb(BRAVEK_HOUSE_ENTRANCE_AREA).execute();
                     }
                     break;
                 case 25:
-                    if (helper.inArea(BRAVEK_HOUSE_AREA)) {
+                    if (inArea(BRAVEK_HOUSE_AREA)) {
                         info("talking to bravek");
-                        if (helper.talkTo("Bravek")) {
+                        if (talkTo("Bravek")) {
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         }
                     } else {
                         info("Walking to bravek");
-                        helper.getWeb(BRAVEK_HOUSE_AREA).execute();
+                        getWeb(BRAVEK_HOUSE_AREA).execute();
                     }
                     break;
                 case 26:
@@ -251,76 +248,76 @@ public class PlagueCityEvent extends BotEvent implements Logger {
                         info("Add snape grass to the mix!");
                         if (new ItemCombineEvent(getBot(), "Snape grass", "Chocolatey milk").executed())
                             sleepGameCycle();
-                    } else if (helper.talkTo("Bravek")) {
+                    } else if (talkTo("Bravek")) {
                         info("talking to bravek");
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     }
                     break;
                 case 27:
-                    if (helper.inArea(PRISON_ROOM_AREA)) {
-                        if (helper.useOnObject("Door", "A small key")) {
+                    if (inArea(PRISON_ROOM_AREA)) {
+                        if (useOnObject("Door", "A small key")) {
                             info("Unlock door");
                             sleep(2000);
-                            if (helper.talkTo("Elena")) {
+                            if (talkTo("Elena")) {
                                 info("talking to Elena");
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             }
                         }
-                    } else if (helper.inArea(PLAGUE_HOUSE_GROUND_FLOOR_AREA)) {
+                    } else if (inArea(PLAGUE_HOUSE_GROUND_FLOOR_AREA)) {
                         if (!getBot().getInventory().contains("A small key")) {
                             info("Grabbing key");
-                            if (helper.interactObject("Barrel", "Search"))
+                            if (interactObject("Barrel", "Search"))
                                 sleepUntil(3000, () -> getBot().getInventory().contains("A small key"));
-                        } else if (helper.interactObject("Spooky stairs", "Walk-down")) {
+                        } else if (interactObject("Spooky stairs", "Walk-down")) {
                             info("Walking downstairs");
-                            sleepUntil(4000, () -> !helper.inArea(PLAGUE_HOUSE_GROUND_FLOOR_AREA));
+                            sleepUntil(4000, () -> !inArea(PLAGUE_HOUSE_GROUND_FLOOR_AREA));
                         }
-                    } else if (helper.inArea(PLAGUE_HOUSE_ENTRANCE_AREA)) {
+                    } else if (inArea(PLAGUE_HOUSE_ENTRANCE_AREA)) {
                         info("Attempt to enter plague house");
-                        if (helper.interactObject("Door", "Open")) {
+                        if (interactObject("Door", "Open")) {
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         }
                     } else {
                         info("Walking to plague house");
-                        helper.getWeb(PLAGUE_HOUSE_ENTRANCE_AREA).execute();
+                        getWeb(PLAGUE_HOUSE_ENTRANCE_AREA).execute();
                     }
                     break;
                 case 28:
-                    if (helper.myPosition().getY() > 9000) {
-                        if (helper.talkTo("Edmond")) {
+                    if (myPosition().getY() > 9000) {
+                        if (talkTo("Edmond")) {
                             sleepUntil(5000, () -> getBot().getDialogues().inDialogue());
                             askedToPull = true;
                         } else {
                             info("Walking closer to Edmond");
-                            helper.getWeb(new Tile(2517, 9748, 0)).execute();
+                            getWeb(new Tile(2517, 9748, 0)).execute();
                         }
-                    } else if (helper.inArea(PRISON_ROOM_AREA)) {
-                        if (helper.useOnObject("Door", "A small key")) {
+                    } else if (inArea(PRISON_ROOM_AREA)) {
+                        if (useOnObject("Door", "A small key")) {
                             info("Unlock door");
                             sleep(2000);
-                            if (helper.interactObject("Spooky stairs", "Walk-up")) {
+                            if (interactObject("Spooky stairs", "Walk-up")) {
                                 info("Walking upstairs");
-                                sleepUntil(4000, () -> helper.inArea(PLAGUE_HOUSE_GROUND_FLOOR_AREA));
+                                sleepUntil(4000, () -> inArea(PLAGUE_HOUSE_GROUND_FLOOR_AREA));
                             }
                         }
-                    } else if (helper.inArea(MAN_HOLE_AREA)) {
+                    } else if (inArea(MAN_HOLE_AREA)) {
                         GameObject hole = getBot().getGameObjects().first("Manhole");
                         if (hole != null) {
-                            if (hole.hasAction("Open") && helper.getInteractEvent(hole, "Open").executed()) {
+                            if (hole.hasAction("Open") && getInteractEvent(hole, "Open").executed()) {
                                 info("Opening manhole");
                                 sleepGameCycle();
-                            } else if (hole.hasAction("Climb-down") && helper.getInteractEvent(hole, "Climb-down").executed()) {
+                            } else if (hole.hasAction("Climb-down") && getInteractEvent(hole, "Climb-down").executed()) {
                                 info("Going down manhole");
-                                sleepUntil(7000, () -> helper.myPosition().getY() > 9000);
+                                sleepUntil(7000, () -> myPosition().getY() > 9000);
                             }
                         }
                     } else {
                         info("Walking to man hole");
-                        helper.getWeb(MAN_HOLE_AREA).execute();
+                        getWeb(MAN_HOLE_AREA).execute();
                     }
 
                 case 29:
-                    if (helper.interactInventory("A magic scroll", "Read")) {
+                    if (interactInventory("A magic scroll", "Read")) {
                         sleepUntil(5000, () -> getBot().getDialogues().inDialogue());
                     }
                     break;
@@ -336,7 +333,7 @@ public class PlagueCityEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 }
 

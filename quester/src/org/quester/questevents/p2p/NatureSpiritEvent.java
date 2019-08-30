@@ -3,14 +3,13 @@ package org.quester.questevents.p2p;
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 
-public class NatureSpiritEvent extends BotEvent implements Logger {
+public class NatureSpiritEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "Is there anything else interesting to do around here?", "Well, what is it, I may be able to help?",
@@ -18,12 +17,10 @@ public class NatureSpiritEvent extends BotEvent implements Logger {
     };
     private final Area START_AREA = new Area(3435, 9902, 3444, 9886);
 
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public NatureSpiritEvent(QuantumBot bot, HelperMethods helper) {
+    public NatureSpiritEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -35,40 +32,40 @@ public class NatureSpiritEvent extends BotEvent implements Logger {
         itemReq.put("Lobster", 13);
 
         info("Started: " + Quest.NATURE_SPIRIT.name());
-        helper.setGrabbedItems(true);
+        setGrabbedItems(true);
     }
 
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(307);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw
-                if (helper.getBankEvent(itemReq).executed()) {
-                    if (helper.closeBank()) {
+                if (getBankEvent(itemReq).executed()) {
+                    if (closeBank()) {
                         // Execute wear equipment.
                         sleepUntil(5000, () -> !getBot().getBank().isOpen());
                         String[] equipables = {"Adamant scimitar", "Ghostspeak amulet"};
                         for (String s : equipables) {
-                            if (helper.interactInventory(s, "Wear", "Wield"))
+                            if (interactInventory(s, "Wear", "Wield"))
                                 sleep(1200);
                         }
                         // At this point we now have our items equipped.
-                        helper.setGrabbedItems(true);
+                        setGrabbedItems(true);
                     }
                 }
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -92,13 +89,13 @@ public class NatureSpiritEvent extends BotEvent implements Logger {
             switch (result) {
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
+                    if (inArea(START_AREA)) {
                         info("Talking to Drezel");
-                        if (helper.talkTo("Drezel"))
+                        if (talkTo("Drezel"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Walking to Drezel");
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
 
@@ -114,7 +111,7 @@ public class NatureSpiritEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 }
 

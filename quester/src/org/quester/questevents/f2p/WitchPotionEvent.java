@@ -6,14 +6,13 @@ import org.quantumbot.api.equipment.AttackStyle;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.AttackStyleEvent;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 
-public class WitchPotionEvent extends BotEvent implements Logger {
+public class WitchPotionEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "I am in search of a quest.", "Yes, help me become one with my darker side.",
@@ -22,12 +21,10 @@ public class WitchPotionEvent extends BotEvent implements Logger {
     private final Area STOVE_AREA = new Area(2963, 3216, 2970, 3209);
     private final Area RAT_AREA = new Area(2953, 3205, 2960, 3202);
 
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public WitchPotionEvent(QuantumBot bot, HelperMethods helper) {
+    public WitchPotionEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -40,28 +37,28 @@ public class WitchPotionEvent extends BotEvent implements Logger {
         if (getBot().getClient().isMembers())
             itemReq.put("Falador teleport", 1);
         info("Started: " + Quest.WITCHS_POTION.name());
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(67);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
-                helper.setGrabbedItems(helper.getBankEvent(itemReq).executed());
+                setGrabbedItems(getBankEvent(itemReq).executed());
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -85,54 +82,54 @@ public class WitchPotionEvent extends BotEvent implements Logger {
             switch (result) {
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
-                        if (helper.talkTo("Hetty"))
+                    if (inArea(START_AREA)) {
+                        if (talkTo("Hetty"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
 
                 case 1:
                     if (!getBot().getInventory().contains("Burnt meat")) {
-                        if (helper.inArea(STOVE_AREA)) {
+                        if (inArea(STOVE_AREA)) {
                             if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Cooked meat"))) {
-                                if (helper.interactObject("Range", "Use"))
+                                if (interactObject("Range", "Use"))
                                     sleepUntil(3000, () -> getBot().getInventory().contains("Burnt meat"));
                             } else {
-                                if (helper.interactInventory("Cooked meat", "Use"))
+                                if (interactInventory("Cooked meat", "Use"))
                                     sleepUntil(3000, () -> getBot().getInventory().isSelected(i -> i != null && i.hasName("Cooked meat")));
                             }
                         } else {
-                            helper.getWeb(STOVE_AREA).execute();
+                            getWeb(STOVE_AREA).execute();
                         }
                     } else if (!getBot().getInventory().contains("Rat's tail")) {
                         if (getBot().getInventory().contains("Iron scimitar")) {
-                            if (helper.interactInventory("Iron scimitar", "Wield"))
+                            if (interactInventory("Iron scimitar", "Wield"))
                                 sleepUntil(3000, () -> !getBot().getInventory().contains("Iron scimitar"));
 
                             new AttackStyleEvent(getBot(), AttackStyle.MELEE_AGGRESSIVE).executed();
-                        } else if (helper.inArea(RAT_AREA)) {
+                        } else if (inArea(RAT_AREA)) {
                             GroundItem tail = getBot().getGroundItems().first("Rat's tail");
                             if (tail != null) {
-                                if (helper.getInteractEvent(tail, "Take").executed())
+                                if (getInteractEvent(tail, "Take").executed())
                                     sleepUntil(3000, () -> getBot().getInventory().contains("Rat's tail"));
-                            } else if (!helper.myPlayer().isInteracting() && helper.interactNPC(r -> r != null && r.isAttackable(), "Attack"))
-                                sleepUntil(3000, () -> helper.myPlayer().isInteracting());
+                            } else if (!myPlayer().isInteracting() && interactNPC(r -> r != null && r.isAttackable(), "Attack"))
+                                sleepUntil(3000, () -> myPlayer().isInteracting());
                         } else {
-                            helper.getWeb(RAT_AREA).execute();
+                            getWeb(RAT_AREA).execute();
                         }
                     } else {
-                        if (helper.inArea(START_AREA)) {
-                            if (helper.talkTo("Hetty"))
+                        if (inArea(START_AREA)) {
+                            if (talkTo("Hetty"))
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         } else {
-                            helper.getWeb(START_AREA).execute();
+                            getWeb(START_AREA).execute();
                         }
                     }
                     break;
                 case 2:
-                    if (helper.interactObject("Cauldron", "Drink From"))
+                    if (interactObject("Cauldron", "Drink From"))
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     break;
                 case 3:
@@ -147,6 +144,6 @@ public class WitchPotionEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 }

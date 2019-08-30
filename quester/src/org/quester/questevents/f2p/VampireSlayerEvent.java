@@ -6,15 +6,14 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Food;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 
-public class VampireSlayerEvent extends BotEvent implements Logger {
+public class VampireSlayerEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "Ok, I'm up for an adventure.", "Morgan needs your help!"
@@ -23,12 +22,10 @@ public class VampireSlayerEvent extends BotEvent implements Logger {
     private final Area BLUE_MOON_INN_AREA = new Area(3218, 3402, 3227, 3394);
     private final Area VAMPIRE_ROOM_ENTRANCE_AREA = new Area(3113, 3361, 3119, 3354);
 
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public VampireSlayerEvent(QuantumBot bot, HelperMethods helper) {
+    public VampireSlayerEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -46,40 +43,40 @@ public class VampireSlayerEvent extends BotEvent implements Logger {
         }
 
         info("Started: " + Quest.VAMPIRE_SLAYER.name());
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(178);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw
-                if (helper.getBankEvent(itemReq).executed()) {
-                    if (helper.closeBank()) {
+                if (getBankEvent(itemReq).executed()) {
+                    if (closeBank()) {
                         // Execute wear equipment.
                         sleepUntil(5000, () -> !getBot().getBank().isOpen());
                         String[] equipables = {"Adamant scimitar", "Amulet of strength"};
                         for (String s : equipables) {
-                            if (helper.interactInventory(s, "Wear", "Wield"))
+                            if (interactInventory(s, "Wear", "Wield"))
                                 sleep(1200);
                         }
                         // At this point we now have our items equipped.
-                        helper.setGrabbedItems(true);
+                        setGrabbedItems(true);
                     }
                 }
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -99,66 +96,66 @@ public class VampireSlayerEvent extends BotEvent implements Logger {
             } else {
                 info("No dialogue???");
             }
-        } else if (getBot().getInventory().contains("Lobster") && helper.ourHealthPercent() <= 50) {
+        } else if (getBot().getInventory().contains("Lobster") && ourHealthPercent() <= 50) {
             new HealEvent(getBot(), getBot().getClient().getSkillBoosted(Skill.HITPOINTS), Food.LOBSTER).executed();
         } else {
             switch (result) {
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
+                    if (inArea(START_AREA)) {
                         info("Talking to Morgan");
-                        if (helper.talkTo("Morgan"))
+                        if (talkTo("Morgan"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Walking to Morgan");
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
                 case 2:
                     if (getBot().getInventory().contains("Stake")) {
-                        if (helper.myPosition().getY() > 9000) {
+                        if (myPosition().getY() > 9000) {
                             NPC vamp = getBot().getNPCs().first("Count Draynor");
                             if (vamp != null) {
-                                if (!helper.myPlayer().isInteracting()) {
+                                if (!myPlayer().isInteracting()) {
                                     info("Attack Count Draynor");
-                                    if (helper.getInteractEvent(vamp, "Attack").executed()) {
-                                        sleepUntil(3000, () -> helper.myPlayer().isInteracting());
+                                    if (getInteractEvent(vamp, "Attack").executed()) {
+                                        sleepUntil(3000, () -> myPlayer().isInteracting());
                                     }
                                 }
-                            } else if (helper.interactObject("Coffin", "Open")
-                                    || helper.interactObject("Coffin", "Search")) {
+                            } else if (interactObject("Coffin", "Open")
+                                    || interactObject("Coffin", "Search")) {
                                 info("Starting battle");
                                 sleepGameCycle();
                             }
-                        } else if (helper.inArea(VAMPIRE_ROOM_ENTRANCE_AREA)) {
-                            if (helper.interactObject("Stairs", "Walk-Down")) {
+                        } else if (inArea(VAMPIRE_ROOM_ENTRANCE_AREA)) {
+                            if (interactObject("Stairs", "Walk-Down")) {
                                 info("Going downstairs");
-                                sleepUntil(7000, () -> helper.myPosition().getY() > 9000);
+                                sleepUntil(7000, () -> myPosition().getY() > 9000);
                             }
                             sleepGameCycle();
                         } else {
                             info("Walking to battle entrance");
-                            helper.getWeb(VAMPIRE_ROOM_ENTRANCE_AREA).execute();
+                            getWeb(VAMPIRE_ROOM_ENTRANCE_AREA).execute();
                         }
                         break;
                     }
 
                     // Asks for a drink. Keep talking..
                 case 1:
-                    if (helper.inArea(BLUE_MOON_INN_AREA)) {
+                    if (inArea(BLUE_MOON_INN_AREA)) {
                         info("Talking to Dr Harlow");
-                        if (helper.talkTo("Dr Harlow"))
+                        if (talkTo("Dr Harlow"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         info("Walking to Dr Harlow");
-                        helper.getWeb(BLUE_MOON_INN_AREA).execute();
+                        getWeb(BLUE_MOON_INN_AREA).execute();
                     }
                     break;
 
                 case 3:
-                    if (helper.myPosition().getY() > 9000 && helper.interactObject("Stairs", "Walk-Up")) {
+                    if (myPosition().getY() > 9000 && interactObject("Stairs", "Walk-Up")) {
                         info("Going upstairs");
-                        sleepUntil(7000, () -> helper.myPosition().getY() < 9000);
+                        sleepUntil(7000, () -> myPosition().getY() < 9000);
                     }
 
                     // End
@@ -172,7 +169,7 @@ public class VampireSlayerEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 }
 

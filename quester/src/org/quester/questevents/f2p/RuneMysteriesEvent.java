@@ -3,14 +3,13 @@ package org.quester.questevents.f2p;
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
-import org.quantumbot.events.BotEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.HelperMethods;
+import org.quester.questutil.QuestContext;
 
 import java.util.HashMap;
 
-public class RuneMysteriesEvent extends BotEvent implements Logger {
+public class RuneMysteriesEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
             "Have you any quests for me?", "Sure, no problem.", "I'm looking for the head wizard.",
@@ -32,12 +31,10 @@ public class RuneMysteriesEvent extends BotEvent implements Logger {
             }
     );
 
-    private HelperMethods helper;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
-    public RuneMysteriesEvent(QuantumBot bot, HelperMethods helper) {
+    public RuneMysteriesEvent(QuantumBot bot) {
         super(bot);
-        this.helper = helper;
     }
 
     @Override
@@ -49,28 +46,28 @@ public class RuneMysteriesEvent extends BotEvent implements Logger {
             itemReq.put("Lumbridge teleport", 1);
         }
         info("Started: " + Quest.RUNE_MYSTERIES.name());
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 
     @Override
     public void step() throws InterruptedException {
         int result = getBot().getVarps().getVarp(63);
 
-        if (result == 0 && !helper.hasQuestItemsBeforeStarting(itemReq, false) && !helper.isGrabbedItems()) {
-            if (helper.hasQuestItemsBeforeStarting(itemReq, true)) {
+        if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
+            if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
                 // Load bank event and execute withdraw;
-                helper.setGrabbedItems(helper.getBankEvent(itemReq).executed());
+                setGrabbedItems(getBankEvent(itemReq).executed());
             } else {
                 // Load buy event and execute buy orders
-                if (helper.getBuyableEvent(itemReq) == null) {
+                if (getBuyableEvent(itemReq) == null) {
                     info("Failed: Not enough coins. Setting complete and stopping.");
                     setComplete();
                     getBot().stop();
                     return;
                 }
                 //info("GE event execute");
-                helper.getBuyableEvent(itemReq).executed();
+                getBuyableEvent(itemReq).executed();
             }
             return;
         }
@@ -94,29 +91,29 @@ public class RuneMysteriesEvent extends BotEvent implements Logger {
             switch (result) {
                 case 0:
                     // Start
-                    if (helper.inArea(START_AREA)) {
-                        if (helper.talkTo("Duke Horacio"))
+                    if (inArea(START_AREA)) {
+                        if (talkTo("Duke Horacio"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(START_AREA).execute();
+                        getWeb(START_AREA).execute();
                     }
                     break;
                 case 5:
                 case 1:
-                    if (helper.inArea(SEDRI_AREA)) {
-                        if (helper.talkTo("Sedridor"))
+                    if (inArea(SEDRI_AREA)) {
+                        if (talkTo("Sedridor"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(SEDRI_AREA).execute();
+                        getWeb(SEDRI_AREA).execute();
                     }
                     break;
                 case 4:
                 case 3:
-                    if (helper.inArea(AUBRY_AREA)) {
-                        if (helper.talkTo("Aubury"))
+                    if (inArea(AUBRY_AREA)) {
+                        if (talkTo("Aubury"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
-                        helper.getWeb(AUBRY_AREA).execute();
+                        getWeb(AUBRY_AREA).execute();
                     }
                     break;
                 case 6:
@@ -131,6 +128,6 @@ public class RuneMysteriesEvent extends BotEvent implements Logger {
 
     @Override
     public void onFinish() {
-        helper.setGrabbedItems(false);
+        setGrabbedItems(false);
     }
 }
