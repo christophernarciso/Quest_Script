@@ -62,7 +62,7 @@ public class ErnestTheChickenEvent extends QuestContext implements Logger {
         levers.add("Lever E");
         levers.add("Lever C");
         levers.add("Lever E");
-        done = false;
+        done = getBot().getInventory().contains("Oil can");
     }
 
     @Override

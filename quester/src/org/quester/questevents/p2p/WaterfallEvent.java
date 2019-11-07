@@ -182,26 +182,15 @@ public class WaterfallEvent extends QuestContext implements Logger {
                 case 2:
                     // Interact barrel
                     if (inArea(ROPE_ON_ROCK_AREA)) {
-                        if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Rope"))) {
-                            info("Rope selected..interacting rock.");
-                            if (interactObject(o -> o != null && o.hasAction("Swim to")
-                                    && o.hasName("Rock") && o.getTile().getY() == 3468, "Use")) {
-                                info("Going across the water: Use rope on rock");
-                                sleepUntil(10000, () -> inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA));
-                            }
-                        } else if (interactInventory("Rope", "Use")) {
-                            info("Interacting rope: Use");
-                            sleepUntil(4000, () -> getBot().getInventory().isSelected(i -> i.hasName("Rope")));
+                        if (useOnObject(o -> o != null && o.hasAction("Swim to")
+                                && o.hasName("Rock") && o.getTile().getY() == 3468, "Rope")) {
+                            info("Going across the water: Use rope on rock");
+                            sleepUntil(10000, () -> inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA));
                         }
                     } else if (inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA)) {
-                        if (getBot().getInventory().isSelected(i -> i.hasName("Rope"))) {
-                            if (interactObject("Dead tree", "Use")) {
-                                info("Going across the water: Use rope on dead tree");
-                                sleepUntil(10000, () -> inArea(WATERFALL_DUNGEON_ENTRANCE));
-                            }
-                        } else if (interactInventory("Rope", "Use")) {
-                            info("Interacting rope: Use");
-                            sleepUntil(4000, () -> getBot().getInventory().isSelected(i -> i.hasName("Rope")));
+                        if (useOnObject("Dead Tree", "Rope")) {
+                            info("Going across the water: Use rope on dead tree");
+                            sleepUntil(10000, () -> inArea(WATERFALL_DUNGEON_ENTRANCE));
                         }
                     } else if (inArea(WATERFALL_DUNGEON_ENTRANCE)) {
                         if (interactObject("Barrel", "Get in")) {
@@ -234,12 +223,12 @@ public class WaterfallEvent extends QuestContext implements Logger {
                     break;
                 case 3:
                     if (!getBot().getInventory().contains("Glarial's pebble")) {
-                        if (!getBot().getInventory().contains("A key")) {
+                        if (!getBot().getInventory().contains("Key")) {
                             if (inArea(MAZE_DUNGEON_KEY_ROOM)) {
                                 info("Grabbing key");
                                 if (interactObject(o -> o != null && o.hasAction("Search")
                                         && o.hasName("Crate") && o.getTile().equals(new Tile(2548, 9565, 0)), "Search")) {
-                                    sleepUntil(4000, () -> getBot().getInventory().contains("A key"));
+                                    sleepUntil(4000, () -> getBot().getInventory().contains("Key"));
                                 }
                             } else {
                                 info("Walking to key room");
@@ -253,7 +242,7 @@ public class WaterfallEvent extends QuestContext implements Logger {
                                 }
                             } else if (inArea(MAZE_DUNGEON_LOCKED_DOOR_ROOM)) {
                                 info("Unlocking door");
-                                if (useOnObject("Door", "A key")) {
+                                if (useOnObject("Door", "Key")) {
                                     sleepUntil(3000, () -> inArea(MAZE_DUNGEON_PEBBLE_ROOM));
                                 }
                             } else {
@@ -263,7 +252,7 @@ public class WaterfallEvent extends QuestContext implements Logger {
                         }
                     } else if (inArea(GLARIAL_TOMBSTONE_AREA)) {
                         info("At the tomb");
-                        if (useOnObject("Glarial's tombstone", "Glarial's pebble"))
+                        if (useOnObject("Glarial's Tombstone", "Glarial's pebble"))
                             sleepUntil(10000, () -> !inArea(GLARIAL_TOMBSTONE_AREA));
                     } else {
                         info("Walking to glarials tomb");
@@ -281,7 +270,7 @@ public class WaterfallEvent extends QuestContext implements Logger {
                         if (myPosition().getY() < 9000 || inArea(MAZE_DUNGEON_PEBBLE_ROOM)) {
                             if (inArea(GLARIAL_TOMBSTONE_AREA)) {
                                 info("At the tomb");
-                                if (useOnObject("Glarial's tombstone", "Glarial's pebble"))
+                                if (useOnObject("Glarial's Tombstone", "Glarial's pebble"))
                                     sleepUntil(10000, () -> !inArea(GLARIAL_TOMBSTONE_AREA));
                             } else {
                                 info("Walking to glarials tomb");
@@ -292,10 +281,10 @@ public class WaterfallEvent extends QuestContext implements Logger {
                             if (!gotAmulet) {
                                 if (inArea(GLARIAL_DUNGEON_AMULET_ROOM)) {
                                     info("Grabbing amulet");
-                                    if (interactObject("Closed chest", "Open"))
+                                    if (interactObject("Chest", "Open"))
                                         sleep(1000);
 
-                                    if (interactObject("Open chest", "Search")) {
+                                    if (interactObject("Chest", "Search")) {
                                         gotAmulet = true;
                                         sleepUntil(3000, () -> getBot().getInventory().contains("Glarial's amulet"));
                                     }
@@ -306,7 +295,7 @@ public class WaterfallEvent extends QuestContext implements Logger {
                             } else if (!gotUrn) {
                                 if (inArea(GLARIAL_DUNGEON_URN_ROOM)) {
                                     info("Grabbing urn");
-                                    if (interactObject("Glarial's tomb", "Search")) {
+                                    if (interactObject("Glarial's Tomb", "Search")) {
                                         gotUrn = true;
                                         sleepUntil(4000, () -> getBot().getInventory().contains("Glarial's urn"));
                                     }
@@ -336,31 +325,20 @@ public class WaterfallEvent extends QuestContext implements Logger {
                         }
                     } else {
                         if (inArea(WATERFALL_DUNGEON_ENTRANCE)) {
-                            if (interactObject("Ledge", "Open")) {
+                            if (interactObject("Door", "Open")) {
                                 info("Entering dungeon.");
                                 sleepUntil(10000, () -> !inArea(WATERFALL_DUNGEON_ENTRANCE));
                             }
                         } else if (inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA)) {
-                            if (getBot().getInventory().isSelected(i -> i.hasName("Rope"))) {
-                                if (interactObject("Dead tree", "Use")) {
-                                    info("Use rope on dead tree");
+                            if (useOnObject("Dead Tree", "Rope")) {
+                                info("Use rope on dead tree");
                                     sleepUntil(10000, () -> inArea(WATERFALL_DUNGEON_ENTRANCE));
-                                }
-                            } else if (interactInventory("Rope", "Use")) {
-                                info("Interacting rope: Use");
-                                sleepUntil(4000, () -> getBot().getInventory().isSelected(i -> i.hasName("Rope")));
                             }
                         } else if (inArea(ROPE_ON_ROCK_AREA)) {
-                            if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Rope"))) {
-                                info("Rope selected..interacting rock.");
-                                if (interactObject(o -> o != null && o.hasAction("Swim to")
-                                        && o.hasName("Rock") && o.getTile().getY() == 3468, "Use")) {
-                                    info("Going across the water: Use rope on rock");
-                                    sleepUntil(10000, () -> inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA));
-                                }
-                            } else if (interactInventory("Rope", "Use")) {
-                                info("Interacting rope: Use");
-                                sleepUntil(4000, () -> getBot().getInventory().isSelected(i -> i.hasName("Rope")));
+                            if (useOnObject(o -> o != null && o.hasAction("Swim to")
+                                    && o.hasName("Rock") && o.getTile().getY() == 3468, "Rope")) {
+                                info("Going across the water: Use rope on rock");
+                                sleepUntil(10000, () -> inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA));
                             }
                         } else if (inArea(RAFT_AREA)) {
                             closedGate = getBot().getGameObjects().closest(o -> o != null && o.hasName("Gate")
@@ -383,12 +361,12 @@ public class WaterfallEvent extends QuestContext implements Logger {
                     break;
                 case 5:
                     // Crate, Search, 2589 9888, 0
-                    if (!getBot().getInventory().contains("A key")) {
+                    if (!getBot().getInventory().contains("Key")) {
                         if (inArea(WATERFALL_DUNGEON_KEY_ROOM)) {
                             info("Grabbing key");
                             if (interactObject(c -> c != null && c.hasName("Crate")
                                     && c.getTile().equals(new Tile(2589, 9888, 0)), "Search")) {
-                                sleepUntil(3000, () -> getBot().getInventory().contains("A key"));
+                                sleepUntil(3000, () -> getBot().getInventory().contains("Key"));
                             }
                         } else {
                             getWeb(new Tile(2589, 9887, 0)).execute();
@@ -397,12 +375,12 @@ public class WaterfallEvent extends QuestContext implements Logger {
                         info("Walking to end room.");
                         getWeb(new Tile(2566, 9901, 0)).execute();
                         sleep(1000);
-                        if (useOnObject("Door", "A key")) {
-                            sleepUntil(3000, () -> inArea(WATERFALL_DUNGEON_MIDDLE_ROOM));
+                        if (interactObject("Door", "Open")) {
+                            sleepUntil(3000, () -> !inArea(WATERFALL_DUNGEON_MIDDLE_ROOM));
                         }
                     } else if (inArea(WATERFALL_DUNGEON_LOCKED_DOOR)) {
                         info("Opening locked door.");
-                        if (useOnObject("Door", "A key")) {
+                        if (useOnObject("Door", "Key")) {
                             sleepUntil(3000, () -> inArea(WATERFALL_DUNGEON_MIDDLE_ROOM));
                         }
                     } else {
@@ -441,7 +419,7 @@ public class WaterfallEvent extends QuestContext implements Logger {
                     }
                     break;
                 case 8:
-                    if (useOnObject("Chalice of Eternity", "Glarial's urn")) {
+                    if (useOnObject("Chalice", "Glarial's urn")) {
                         sleepUntil(7000, () -> getBot().getInventory().contains("Gold bar"));
                     }
                     break;

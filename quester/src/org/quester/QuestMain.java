@@ -10,7 +10,7 @@ import org.quester.questevents.p2p.*;
 @ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Quest")
 public class QuestMain extends Script implements Logger {
 
-    private boolean starterAccountMode = false, allFreeToPlayMode = false, avasReady = true, fungusReady = false;
+    private boolean starterAccountMode = false, allFreeToPlayMode = false, avasReady = false, fungusReady = true;
 
     @Override
     public void onStart() {

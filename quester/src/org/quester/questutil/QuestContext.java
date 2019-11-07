@@ -135,11 +135,19 @@ public abstract class QuestContext extends BotEvent {
     }
 
     public boolean useOnObject(String objectName, String useItemName) throws InterruptedException {
-        return new ObjectInteractEvent(getBot(), objectName, "Use").setUse(useItemName).executed();
+        return new ObjectInteractEvent(getBot(), objectName).setWalk(false).setUse(useItemName).executed();
     }
 
     public boolean useOnObject(Predicate<GameObject> objectPredicate, String useItemName) throws InterruptedException {
-        return new ObjectInteractEvent(getBot(), objectPredicate, "Use").setUse(useItemName).executed();
+        return new ObjectInteractEvent(getBot(), objectPredicate).setWalk(false).setUse(useItemName).executed();
+    }
+
+    public boolean useOnObject(Predicate<GameObject> objectPredicate, int useItemID) throws InterruptedException {
+        return new ObjectInteractEvent(getBot(), objectPredicate).setWalk(false).setUse(useItemID).executed();
+    }
+
+    public boolean useOnNPC(String npcName, String useItemName) throws InterruptedException {
+        return new NPCInteractEvent(getBot(), npcName).setWalk(false).setUse(useItemName).executed();
     }
 
     public boolean interactObject(String objectName, String... actions) throws InterruptedException {

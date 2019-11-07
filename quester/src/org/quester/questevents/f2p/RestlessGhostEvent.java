@@ -125,11 +125,9 @@ public class RestlessGhostEvent extends QuestContext implements Logger {
                     if (inArea(GHOST_AREA)) {
                         NPC ghost = getBot().getNPCs().first("Restless ghost");
                         if (placeHead) {
-                            if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Ghost's skull"))) {
-                                if (interactObject("Coffin", "Use"))
-                                    sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-                            } else if (interactInventory("Ghost's skull", "Use"))
-                                sleepUntil(3000, () -> getBot().getInventory().isSelected(i -> i != null && i.hasName("Ghost's skull")));
+                            if (useOnObject("Coffin", "Ghost's skull")) {
+                                sleepUntil(5000, () -> getBot().getDialogues().inDialogue());
+                            }
                         } else if (ghost != null) {
                             if (getInteractEvent(ghost, "Talk-to").executed()) {
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());

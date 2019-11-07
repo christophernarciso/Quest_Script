@@ -7,7 +7,6 @@ import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.EnterAmountEvent;
-import org.quantumbot.events.containers.InventoryInteractEvent;
 import org.quantumbot.events.interactions.InteractEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questutil.QuestContext;
@@ -256,18 +255,12 @@ public class DeathPlateauEvent extends QuestContext implements Logger {
                             }
                         } else {
                             info("handling combination");
-                            if (getBot().getInventory().isSelected(i -> i.getId() == COMBINATION_ID[index])) {
-                                info("ball selected.");
-                                int last = getBot().getInventory().getEmptySlots();
-                                if (interactObject(o -> o != null && o.getName().equals("Stone Mechanism") && o.getTile().equals(COMBINATION_TILES[index]), "Use")) {
-                                    sleepUntil(10000, () -> getBot().getInventory().getEmptySlots() > last);
-                                    index++;
-                                    sleep(600);
-                                }
-                            } else {
-                                info("select: ball");
-                                if (new InventoryInteractEvent(getBot(), COMBINATION_ID[index], "Use").executed())
-                                    sleepUntil(5000, () -> getBot().getInventory().isSelected(i -> i.getId() == COMBINATION_ID[index]));
+                            int last = getBot().getInventory().getEmptySlots();
+
+                            if (useOnObject(o -> o != null && o.getName().equals("Stone Mechanism") && o.getTile().equals(COMBINATION_TILES[index]), COMBINATION_ID[index])) {
+                                sleepUntil(10000, () -> getBot().getInventory().getEmptySlots() > last);
+                                index++;
+                                sleep(600);
                             }
                         }
                     } else {

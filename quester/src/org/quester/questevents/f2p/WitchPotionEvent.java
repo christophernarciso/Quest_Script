@@ -93,12 +93,8 @@ public class WitchPotionEvent extends QuestContext implements Logger {
                 case 1:
                     if (!getBot().getInventory().contains("Burnt meat")) {
                         if (inArea(STOVE_AREA)) {
-                            if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Cooked meat"))) {
-                                if (interactObject("Range", "Use"))
-                                    sleepUntil(3000, () -> getBot().getInventory().contains("Burnt meat"));
-                            } else {
-                                if (interactInventory("Cooked meat", "Use"))
-                                    sleepUntil(3000, () -> getBot().getInventory().isSelected(i -> i != null && i.hasName("Cooked meat")));
+                            if (useOnObject("Range", "Cooked meat")) {
+                                sleepUntil(3000, () -> getBot().getInventory().contains("Burnt meat"));
                             }
                         } else {
                             getWeb(STOVE_AREA).execute();
