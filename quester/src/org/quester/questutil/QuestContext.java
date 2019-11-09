@@ -59,6 +59,7 @@ public abstract class QuestContext extends BotEvent {
         WebWalkEvent w = new WebWalkEvent(getBot(), tile);
         w.setInterruptCondition(() -> getBot().getInventory().contains(item -> item != null && item.hasAction("Eat"))
                 && ourHealthPercent() <= 50);
+        w.setDestinationAccuracy(0);
         return w;
     }
 
