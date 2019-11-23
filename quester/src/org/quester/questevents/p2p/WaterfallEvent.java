@@ -10,6 +10,7 @@ import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
+import org.quantumbot.events.WebWalkEvent;
 import org.quantumbot.events.containers.BankOpenEvent;
 import org.quantumbot.events.containers.DepositEvent;
 import org.quantumbot.events.containers.WithdrawEvent;
@@ -83,6 +84,7 @@ public class WaterfallEvent extends QuestContext implements Logger {
         itemReq.put("Earth rune", 6);
         itemReq.put("Water rune", 6);
         itemReq.put("Air rune", 6);
+        itemReq.put("Varrock teleport", 3);
         itemReq.put("Rope", 1);
         itemReq.put("Lobster", 10);
         info("Started: " + Quest.WATERFALL_QUEST.name());
@@ -151,8 +153,8 @@ public class WaterfallEvent extends QuestContext implements Logger {
             } else {
                 info("No dialogue???");
             }
-        } else if (getBot().getInventory().contains("Lobster") && ourHealthPercent() <= 50) {
-            new HealEvent(getBot(), getBot().getClient().getSkillBoosted(Skill.HITPOINTS), Food.LOBSTER).executed();
+        } else if (getBot().getInventory().contains("Lobster") && getBot().getClient().getSkillBoosted(Skill.HITPOINTS) <= 15) {
+            new HealEvent(getBot()).executed();
         } else {
             switch (result) {
                 case 0:
@@ -182,7 +184,8 @@ public class WaterfallEvent extends QuestContext implements Logger {
                 case 2:
                     // Interact barrel
                     if (inArea(ROPE_ON_ROCK_AREA)) {
-                        if (useOnObject(o -> o != null && o.hasAction("Swim to")
+                        info("Attempting to cross water");
+                        if (useOnObject(o -> o != null
                                 && o.hasName("Rock") && o.getTile().getY() == 3468, "Rope")) {
                             info("Going across the water: Use rope on rock");
                             sleepUntil(10000, () -> inArea(INTERACT_TREE_BEFORE_ENTRANCE_AREA));
@@ -274,7 +277,7 @@ public class WaterfallEvent extends QuestContext implements Logger {
                                     sleepUntil(10000, () -> !inArea(GLARIAL_TOMBSTONE_AREA));
                             } else {
                                 info("Walking to glarials tomb");
-                                getWeb(GLARIAL_TOMBSTONE_AREA).execute();
+                               getWeb(GLARIAL_TOMBSTONE_AREA).execute();
                             }
                         } else {
                             info("Inside dungeon");
@@ -290,7 +293,9 @@ public class WaterfallEvent extends QuestContext implements Logger {
                                     }
                                 } else {
                                     info("Walking to glarials amulet room");
-                                    getWeb(GLARIAL_DUNGEON_AMULET_ROOM).execute();
+                                    new WebWalkEvent(getBot(), GLARIAL_DUNGEON_AMULET_ROOM)
+                                            .setInterruptCondition(() -> getBot().getInventory().contains("Lobster") && getBot().getClient().getSkillBoosted(Skill.HITPOINTS) <= 15)
+                                            .executed();
                                 }
                             } else if (!gotUrn) {
                                 if (inArea(GLARIAL_DUNGEON_URN_ROOM)) {
@@ -301,13 +306,19 @@ public class WaterfallEvent extends QuestContext implements Logger {
                                     }
                                 } else {
                                     info("Walking to glarials urn room");
-                                    getWeb(GLARIAL_DUNGEON_URN_ROOM).execute();
+                                    new WebWalkEvent(getBot(), GLARIAL_DUNGEON_URN_ROOM)
+                                            .setInterruptCondition(() -> getBot().getInventory().contains("Lobster") && getBot().getClient().getSkillBoosted(Skill.HITPOINTS) <= 15)
+                                            .executed();
                                 }
                             }
                         }
                     } else if (inArea(GLARIAL_DUNGEON_URN_ROOM) && gotUrn) {
                         info("Leaving dungeon.");
-                        getWeb(Bank.BARBARIAN_ASSAULT_BANK.getArea()).execute();
+                        if (getBot().getInventory().contains("Varrock teleport")) {
+                            if (interactInventory("Varrock teleport", "Break"))
+                                sleep(7000);
+                        }
+//                        getWeb(Bank.BARBARIAN_ASSAULT_BANK.getArea()).execute();
                     } else if (!getBot().getInventory().containsAll("Earth rune", "Water rune", "Air rune")) {
                         info("Need to grab runes");
                         if (!getBot().getBank().isOpen())

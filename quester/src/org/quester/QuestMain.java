@@ -10,7 +10,7 @@ import org.quester.questevents.p2p.*;
 @ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Quest")
 public class QuestMain extends Script implements Logger {
 
-    private boolean starterAccountMode = false, allFreeToPlayMode = false, avasReady = false, fungusReady = true;
+    private boolean starterAccountMode = false, allFreeToPlayMode = false, avasReady = false, fungusReady = true, ldkready = true;
 
     @Override
     public void onStart() {
@@ -63,6 +63,11 @@ public class QuestMain extends Script implements Logger {
                     new AnimalMagnetismEvent(getBot())
             ).executed();
             avasReady = false;
+        } else if (ldkready) {
+            new ImpCatcherEvent(getBot()).then(
+                    new WitchPotionEvent(getBot()),
+                    new WitchHouseEvent(getBot())
+            ).executed();
         } else {
             getBot().stop();
         }

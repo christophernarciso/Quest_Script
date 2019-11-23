@@ -7,6 +7,7 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.DialogueEvent;
+import org.quantumbot.events.DropItemsEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.events.interactions.ObjectInteractEvent;
 import org.quantumbot.interfaces.Logger;
@@ -44,6 +45,7 @@ public class NatureSpiritEvent extends QuestContext implements Logger {
         itemReq.put("Ghostspeak amulet", 1);
         itemReq.put("Silver sickle", 1);
         itemReq.put("Adamant scimitar", 1);
+        itemReq.put("Varrock teleport", 1);
         itemReq.put("Lobster", 13);
 
         info("Started: " + Quest.NATURE_SPIRIT.name());
@@ -90,14 +92,17 @@ public class NatureSpiritEvent extends QuestContext implements Logger {
         info("Quest stage: 307 = " + result);
         if (getBot().getDialogues().inDialogue() && !shouldUseItem) {
             info("Dialogue");
-            if (getBot().getDialogues().isPendingContinuation()) {
+            if (result == 20 && !getBot().getInventory().contains("Mirror")) {
+                if (getInteractEvent(myPosition(), "Walk here").executed())
+                    sleep(1000);
+            } else if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
-                if (new DialogueEvent(getBot()).setInterruptCondition(() -> getBot().getDialogues().isPendingOption()).executed())
+                if (new DialogueEvent(getBot()).setInterruptCondition(() -> getBot().getDialogues().isPendingOption() || result == 20 && !getBot().getInventory().contains("Mirror")).executed())
                     sleepUntil(2000, () -> !getBot().getDialogues().isPendingContinuation());
             } else if (getBot().getDialogues().isPendingOption()) {
                 info("Handling option");
                 info("QUEST_DIALOGUE");
-                new DialogueEvent(getBot(), QUEST_DIALOGUE).execute();
+                new DialogueEvent(getBot(), QUEST_DIALOGUE).setInterruptCondition(() -> result == 20 && !getBot().getInventory().contains("Mirror")).execute();
                 sleep(1000);
             } else {
                 info("No dialogue???");
@@ -195,8 +200,16 @@ public class NatureSpiritEvent extends QuestContext implements Logger {
                             }
                         }
                     } else {
-                        info("Walking to bloom tile");
-                        getWeb(SPELL_TILE).execute();
+                        if (INSIDE_GROTTO_AREA.contains(myPosition())) {
+                            if (interactObject("Grotto", "Exit")) {
+                                sleepUntil(5000, () -> !INSIDE_GROTTO_AREA.contains(myPosition()));
+                            }
+                        } else if (getBot().getInventory().contains("Rotten food")) {
+                            new DropItemsEvent(getBot(), "Pie dish", "Rotten food").executed();
+                        } else {
+                            info("Walking to bloom tile");
+                            getWeb(SPELL_TILE).setInterruptCondition(() -> INSIDE_GROTTO_AREA.contains(myPosition())).execute();
+                        }
                     }
                     break;
                 case 55:

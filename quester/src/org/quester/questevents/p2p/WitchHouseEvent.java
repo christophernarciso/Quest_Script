@@ -10,6 +10,7 @@ import org.quantumbot.enums.Skill;
 import org.quantumbot.enums.spells.StandardSpellbook;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
+import org.quantumbot.events.WorldHopEvent;
 import org.quantumbot.events.interactions.InteractEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questutil.QuestContext;
@@ -200,7 +201,7 @@ public class WitchHouseEvent extends QuestContext implements Logger {
                         if (!isAutocasting()) {
                             info("Need to autocast spell");
                             if (autocastSpell(getBot().getClient().getSkillReal(Skill.MAGIC) >= 13 ? StandardSpellbook.FIRE_STRIKE : StandardSpellbook.EARTH_STRIKE, false)) {
-                                sleepUntil(3000, () -> isAutocasting());
+                                sleepUntil(3000, this::isAutocasting);
                             }
                         } else {
                             // Boss combat
@@ -279,14 +280,20 @@ public class WitchHouseEvent extends QuestContext implements Logger {
                                         break;
                                 }
                             }
-                        } else if (myY >= 3466) {
+                        } else if (myY >= 3466 || inArea(BOSS_FRONT_DOOR_AREA) && getBot().getInventory().contains("Key")) {
                             info("Traverse top trail");
                             if (witchX > 0 || witch == null) {
                                 if (getBot().getInventory().contains("Key")) {
                                     if (inArea(BOSS_FRONT_DOOR_AREA)) {
                                         if (useOnObject("Door", "Key")) {
                                             info("Used key on boss door");
-                                                sleepUntil(3000, () -> inArea(BOSS_ROOM_AREA));
+                                            sleepUntil(4000, () -> inArea(BOSS_ROOM_AREA));
+                                            if (getBot().getDialogues().isPendingContinuation()) {
+                                                new DialogueEvent(getBot()).executed();
+                                                if (new WorldHopEvent(getBot(), w -> w.isMembers() && !w.isHighRisk() && !w.isPVP() && w.isStandard()).executed()) {
+                                                    sleep(2000);
+                                                }
+                                            }
                                         }
 //                                        if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Key"))) {
 //                                            info("Entering boss room");

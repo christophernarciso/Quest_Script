@@ -59,7 +59,6 @@ public abstract class QuestContext extends BotEvent {
         WebWalkEvent w = new WebWalkEvent(getBot(), tile);
         w.setInterruptCondition(() -> getBot().getInventory().contains(item -> item != null && item.hasAction("Eat"))
                 && ourHealthPercent() <= 50);
-        w.setDestinationAccuracy(0);
         return w;
     }
 
@@ -114,6 +113,12 @@ public abstract class QuestContext extends BotEvent {
             ge.buy(amt, price, key);
         }
 
+        if (getBot().getBank().isCached() && !getBot().getBank().contains("Ring of wealth (1~5)")) {
+            expectedTotal += getBot().getPriceGrabber().getGEPrice("Ring of wealth (5)") + 2000;
+            System.out.println("Adding " + "ROW" + " to buy list");
+            ge.buy(1, getBot().getPriceGrabber().getGEPrice("Ring of wealth (5)") + 2000, "Ring of wealth (5)");
+        }
+
         if (totalCoins < expectedTotal)
             return null;
 
@@ -136,19 +141,19 @@ public abstract class QuestContext extends BotEvent {
     }
 
     public boolean useOnObject(String objectName, String useItemName) throws InterruptedException {
-        return new ObjectInteractEvent(getBot(), objectName).setWalk(false).setUse(useItemName).executed();
+        return new ObjectInteractEvent(getBot(), objectName, false, "").setWalk(false).setUse(useItemName).executed();
     }
 
     public boolean useOnObject(Predicate<GameObject> objectPredicate, String useItemName) throws InterruptedException {
-        return new ObjectInteractEvent(getBot(), objectPredicate).setWalk(false).setUse(useItemName).executed();
+        return new ObjectInteractEvent(getBot(), objectPredicate, false, "").setWalk(false).setUse(useItemName).executed();
     }
 
     public boolean useOnObject(Predicate<GameObject> objectPredicate, int useItemID) throws InterruptedException {
-        return new ObjectInteractEvent(getBot(), objectPredicate).setWalk(false).setUse(useItemID).executed();
+        return new ObjectInteractEvent(getBot(), objectPredicate, false, "").setWalk(false).setUse(useItemID).executed();
     }
 
     public boolean useOnNPC(String npcName, String useItemName) throws InterruptedException {
-        return new NPCInteractEvent(getBot(), npcName).setWalk(false).setUse(useItemName).executed();
+        return new NPCInteractEvent(getBot(), npcName, "").setWalk(false).setUse(useItemName).executed();
     }
 
     public boolean interactObject(String objectName, String... actions) throws InterruptedException {
