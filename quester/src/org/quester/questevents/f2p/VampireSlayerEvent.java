@@ -9,7 +9,7 @@ import org.quantumbot.enums.Skill;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.QuestContext;
+import org.quester.questevents.questutil.QuestContext;
 
 import java.util.HashMap;
 

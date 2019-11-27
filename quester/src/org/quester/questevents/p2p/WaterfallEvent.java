@@ -5,7 +5,6 @@ import org.quantumbot.api.entities.GameObject;
 import org.quantumbot.api.enums.Bank;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
-import org.quantumbot.enums.Food;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
 import org.quantumbot.events.DialogueEvent;
@@ -17,7 +16,7 @@ import org.quantumbot.events.containers.WithdrawEvent;
 import org.quantumbot.events.interactions.InteractEvent;
 import org.quantumbot.events.interactions.WidgetInteractEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.QuestContext;
+import org.quester.questevents.questutil.QuestContext;
 
 import java.util.HashMap;
 import java.util.function.Predicate;

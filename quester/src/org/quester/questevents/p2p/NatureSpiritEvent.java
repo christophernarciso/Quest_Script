@@ -11,7 +11,7 @@ import org.quantumbot.events.DropItemsEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.events.interactions.ObjectInteractEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.QuestContext;
+import org.quester.questevents.questutil.QuestContext;
 
 import java.util.HashMap;
 

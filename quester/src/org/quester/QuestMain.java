@@ -10,7 +10,7 @@ import org.quester.questevents.p2p.*;
 @ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Quest")
 public class QuestMain extends Script implements Logger {
 
-    private boolean starterAccountMode = false, allFreeToPlayMode = false, avasReady = false, fungusReady = true, ldkready = true;
+    private boolean starterAccountMode = true, allFreeToPlayMode = true, avasReady = false, fungusReady = true, ldkready = false;
 
     @Override
     public void onStart() {
@@ -31,18 +31,11 @@ public class QuestMain extends Script implements Logger {
                     new RuneMysteriesEvent(getBot()),
                     new SheepShearerEvent(getBot()),
                     new RestlessGhostEvent(getBot()),
-                    new ErnestTheChickenEvent(getBot())
+                    new ErnestTheChickenEvent(getBot()),
+                    new GoblinDiplomacyEvent(getBot()),
+                    new RomeoJulietEvent(getBot())
             ).executed();
             allFreeToPlayMode = false;
-        } else if (fungusReady) {
-            new ImpCatcherEvent(getBot()).then(
-                    new WitchPotionEvent(getBot()),
-                    new WitchHouseEvent(getBot()),
-                    new WaterfallEvent(getBot()),
-                    new RestlessGhostEvent(getBot()),
-                    new PriestInPerilEvent(getBot()),
-                    new NatureSpiritEvent(getBot())
-            ).executed();
         } else if (starterAccountMode) {
             new DeathPlateauEvent(getBot()).then(
                     new ImpCatcherEvent(getBot()),
@@ -52,6 +45,15 @@ public class QuestMain extends Script implements Logger {
                     new VampireSlayerEvent(getBot())
             ).executed();
             starterAccountMode = false;
+        } else if (fungusReady) {
+            new ImpCatcherEvent(getBot()).then(
+                    new WitchPotionEvent(getBot()),
+                    new WitchHouseEvent(getBot()),
+                    new WaterfallEvent(getBot()),
+                    new RestlessGhostEvent(getBot()),
+                    new PriestInPerilEvent(getBot()),
+                    new NatureSpiritEvent(getBot())
+            ).executed();
         } else if (avasReady) {
             new AnimalMagnetismEvent(getBot()).executed();
             new RestlessGhostEvent(getBot()).then(

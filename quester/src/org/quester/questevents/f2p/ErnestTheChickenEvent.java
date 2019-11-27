@@ -7,7 +7,7 @@ import org.quantumbot.enums.Quest;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.ItemCombineEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.QuestContext;
+import org.quester.questevents.questutil.QuestContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,7 +49,7 @@ public class ErnestTheChickenEvent extends QuestContext implements Logger {
         itemReq.put("Fish food", 1);
         itemReq.put("Poison", 1);
         if (getBot().getClient().isMembers())
-            itemReq.put("Draynor manor teleport", 1);
+            itemReq.put("Draynor manor teleport", 3);
         info("Started: " + Quest.ERNEST_THE_CHICKEN.name());
         setGrabbedItems(false);
         // Setup the levers

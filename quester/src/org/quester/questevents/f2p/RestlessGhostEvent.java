@@ -6,7 +6,7 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.QuestContext;
+import org.quester.questevents.questutil.QuestContext;
 
 import java.util.HashMap;
 
@@ -33,7 +33,7 @@ public class RestlessGhostEvent extends QuestContext implements Logger {
     public void onStart() {
         // Required items needed
         if (getBot().getClient().isMembers()) {
-            itemReq.put("Lumbridge teleport", 3);
+            itemReq.put("Lumbridge teleport", 5);
             itemReq.put("Necklace of passage(1~5)", 1);
         }
         info("Started: " + Quest.THE_RESTLESS_GHOST.name());

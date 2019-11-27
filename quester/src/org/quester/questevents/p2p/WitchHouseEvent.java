@@ -13,7 +13,7 @@ import org.quantumbot.events.HealEvent;
 import org.quantumbot.events.WorldHopEvent;
 import org.quantumbot.events.interactions.InteractEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.QuestContext;
+import org.quester.questevents.questutil.QuestContext;
 
 import java.util.Arrays;
 import java.util.HashMap;

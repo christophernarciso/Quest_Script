@@ -9,7 +9,7 @@ import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.EnterAmountEvent;
 import org.quantumbot.events.interactions.InteractEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.QuestContext;
+import org.quester.questevents.questutil.QuestContext;
 
 import java.util.HashMap;
 
@@ -72,7 +72,7 @@ public class DeathPlateauEvent extends QuestContext implements Logger {
     private final Area EIGHTH_STAGE_AREA = new Area(2917, 3577, 2923, 3572);
     private final Area NINTH_STAGE_AREA = new Area(2814, 3562, 2821, 3558);
     private int grabStart = 3561, index = 0;
-    private boolean shouldGrabBalls = true, shouldTalkToGuard = true, shouldTalkToSaba = true, shouldTalkToDunstan = true, shouldFindPath = true;
+    private boolean shouldGrabBalls, shouldTalkToGuard, shouldTalkToSaba, shouldTalkToDunstan, shouldFindPath;
     private HashMap<String, Integer> itemReq = new HashMap<>();
 
     public DeathPlateauEvent(QuantumBot bot) {
@@ -91,6 +91,11 @@ public class DeathPlateauEvent extends QuestContext implements Logger {
         itemReq.put("Games necklace(1~8)", 1);
         info("Started: " + Quest.DEATH_PLATEAU.name());
         setGrabbedItems(false);
+        shouldGrabBalls = true;
+        shouldTalkToGuard = true;
+        shouldTalkToSaba = true;
+        shouldTalkToDunstan = true;
+        shouldFindPath = true;
     }
 
     @Override
@@ -317,9 +322,11 @@ public class DeathPlateauEvent extends QuestContext implements Logger {
                         }
                     } else if (shouldTalkToGuard) {
                         if (inArea(FIFTH_STAGE_AREA)) {
+                            info("Talk to guard: " + shouldTalkToGuard);
                             if (talkTo("Archer")) {
-                                sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                                 shouldTalkToGuard = false;
+                                info("Talk to guard: " + shouldTalkToGuard);
+                                sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             }
                         } else {
                             getWeb(FIFTH_STAGE_AREA).execute();
@@ -327,13 +334,18 @@ public class DeathPlateauEvent extends QuestContext implements Logger {
                     } else if (shouldTalkToSaba) {
                         if (inArea(SIXTH_STAGE_PART_TWO_AREA)) {
                             if (talkTo("Saba")) {
-                                sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                                 shouldTalkToSaba = false;
+                                sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             }
                         } else if (inArea(SIXTH_STAGE_AREA)) {
                             if (interactObject("Cave Entrance", "Enter"))
                                 sleepUntil(7000, () -> inArea(SIXTH_STAGE_PART_TWO_AREA));
                         } else {
+                            if (inArea(FIFTH_STAGE_AREA)) {
+                                if (interactObject("Ladder", "Climb-down"))
+                                    sleepUntil(5000, () -> !inArea(FIFTH_STAGE_AREA));
+                                return;
+                            }
                             getWeb(SIXTH_STAGE_AREA).execute();
                         }
                     } else {

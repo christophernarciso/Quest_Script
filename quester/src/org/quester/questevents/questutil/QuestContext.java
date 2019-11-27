@@ -1,4 +1,4 @@
-package org.quester.questutil;
+package org.quester.questevents.questutil;
 
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.containers.Item;
@@ -141,23 +141,23 @@ public abstract class QuestContext extends BotEvent {
     }
 
     public boolean useOnObject(String objectName, String useItemName) throws InterruptedException {
-        return new ObjectInteractEvent(getBot(), objectName, false, "").setWalk(false).setUse(useItemName).executed();
+        return new ObjectInteractEvent(getBot(), objectName, false).setWalk(false).setUse(useItemName).executed();
     }
 
     public boolean useOnObject(Predicate<GameObject> objectPredicate, String useItemName) throws InterruptedException {
-        return new ObjectInteractEvent(getBot(), objectPredicate, false, "").setWalk(false).setUse(useItemName).executed();
+        return new ObjectInteractEvent(getBot(), objectPredicate, false).setWalk(false).setUse(useItemName).executed();
     }
 
     public boolean useOnObject(Predicate<GameObject> objectPredicate, int useItemID) throws InterruptedException {
-        return new ObjectInteractEvent(getBot(), objectPredicate, false, "").setWalk(false).setUse(useItemID).executed();
+        return new ObjectInteractEvent(getBot(), objectPredicate, false).setWalk(false).setUse(useItemID).executed();
     }
 
     public boolean useOnNPC(String npcName, String useItemName) throws InterruptedException {
-        return new NPCInteractEvent(getBot(), npcName, "").setWalk(false).setUse(useItemName).executed();
+        return new NPCInteractEvent(getBot(), npcName).setWalk(false).setUse(useItemName).executed();
     }
 
     public boolean interactObject(String objectName, String... actions) throws InterruptedException {
-        return new ObjectInteractEvent(getBot(), objectName, actions).executed();
+        return new ObjectInteractEvent(getBot(), objectName, actions).setWalk(false).executed();
     }
 
     public boolean interactObject(Predicate<GameObject> objectPredicate, String... actions) throws InterruptedException {

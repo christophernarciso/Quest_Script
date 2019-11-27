@@ -5,7 +5,7 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.QuestContext;
+import org.quester.questevents.questutil.QuestContext;
 
 import java.util.HashMap;
 
@@ -26,8 +26,10 @@ public class SheepShearerEvent extends QuestContext implements Logger {
     public void onStart() {
         // Required items needed
         itemReq.put("Ball of wool", 20);
-        if (getBot().getClient().isMembers())
+        if (getBot().getClient().isMembers()) {
             itemReq.put("Lumbridge teleport", 1);
+            itemReq.put("Varrock teleport", 1);
+        }
         info("Started: " + Quest.SHEEP_SHEARER.name());
         setGrabbedItems(false);
     }

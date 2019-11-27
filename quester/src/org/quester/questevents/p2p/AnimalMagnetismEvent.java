@@ -10,7 +10,7 @@ import org.quantumbot.events.ItemCombineEvent;
 import org.quantumbot.events.containers.EquipmentInteractEvent;
 import org.quantumbot.events.containers.StoreInteractEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.QuestContext;
+import org.quester.questevents.questutil.QuestContext;
 
 import java.util.HashMap;
 import java.util.List;

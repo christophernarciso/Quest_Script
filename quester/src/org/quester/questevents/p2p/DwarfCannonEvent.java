@@ -8,7 +8,7 @@ import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.QuestContext;
+import org.quester.questevents.questutil.QuestContext;
 
 import java.util.HashMap;
 import java.util.function.Predicate;

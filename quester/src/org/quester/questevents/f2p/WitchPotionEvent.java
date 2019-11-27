@@ -8,7 +8,7 @@ import org.quantumbot.enums.Quest;
 import org.quantumbot.events.AttackStyleEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
-import org.quester.questutil.QuestContext;
+import org.quester.questevents.questutil.QuestContext;
 
 import java.util.HashMap;
 
@@ -93,7 +93,7 @@ public class WitchPotionEvent extends QuestContext implements Logger {
                 case 1:
                     if (!getBot().getInventory().contains("Burnt meat")) {
                         if (inArea(STOVE_AREA)) {
-                            if (useOnObject("Range", "Cooked meat")) {
+                            if (interactObject("Range", "Cook")) {
                                 sleepUntil(3000, () -> getBot().getInventory().contains("Burnt meat"));
                             }
                         } else {
