@@ -5,6 +5,7 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.Quest;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.EnterAmountEvent;
 import org.quantumbot.events.interactions.InteractEvent;
@@ -364,6 +365,8 @@ public class DeathPlateauEvent extends QuestContext implements Logger {
                     }
                     break;
                 case 80:
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.DEATH_PLATEAU.name());
                     setComplete();

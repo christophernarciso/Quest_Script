@@ -6,6 +6,7 @@ import org.quantumbot.api.entities.NPC;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.Quest;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.DropItemsEvent;
 import org.quantumbot.events.HealEvent;
@@ -90,11 +91,12 @@ public class NatureSpiritEvent extends QuestContext implements Logger {
         }
 
         info("Quest stage: 307 = " + result);
-        if (getBot().getDialogues().inDialogue() && !shouldUseItem) {
+        if (getBot().getDialogues().inDialogue() && !shouldUseItem || getBot().getCamera().isLocked()) {
             info("Dialogue");
-            if (result == 20 && !getBot().getInventory().contains("Mirror")) {
-                if (getInteractEvent(myPosition(), "Walk here").executed())
-                    sleep(1000);
+            if (result == 20 && !getBot().getInventory().contains("Mirror") && getBot().getDialogues().isPendingOption()) {
+                info("Stop dialogue need to grab items!");
+                if (getDialogue("Ok, thanks.").executed())
+                    sleep(3000);
             } else if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
                 if (new DialogueEvent(getBot()).setInterruptCondition(() -> getBot().getDialogues().isPendingOption() || result == 20 && !getBot().getInventory().contains("Mirror")).executed())
@@ -285,6 +287,8 @@ public class NatureSpiritEvent extends QuestContext implements Logger {
                     }
                     break;
                 case 110:
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.NATURE_SPIRIT.name());
                     setComplete();

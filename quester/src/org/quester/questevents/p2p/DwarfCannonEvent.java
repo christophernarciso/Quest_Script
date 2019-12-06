@@ -6,6 +6,7 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.Quest;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.questutil.QuestContext;
@@ -70,7 +71,7 @@ public class DwarfCannonEvent extends QuestContext implements Logger {
         }
 
         info("Quest stage: 0 = " + result);
-        if (getBot().getDialogues().inDialogue()) {
+        if (getBot().getDialogues().inDialogue() || getBot().getCamera().isLocked()) {
             info("Dialogue");
             if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
@@ -224,6 +225,8 @@ public class DwarfCannonEvent extends QuestContext implements Logger {
                     break;
 
                 case 11:
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.DWARF_CANNON.name());
                     setComplete();

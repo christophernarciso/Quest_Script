@@ -13,7 +13,7 @@ import java.util.HashMap;
 
 public class RomeoJulietEvent extends QuestContext implements Logger {
     private final String[] QUEST_DIALOGUE = {
-            "Perhaps I could help to find her for you?", "Yes, ok I'll let her know.",
+            "Perhaps I could help to find her for you?", "Yes, ok, I'll let her know.",
             "Where can I find Juliet?", "Talk about something else.",
             "Talk about Romeo & Juliet"
     };
@@ -64,7 +64,7 @@ public class RomeoJulietEvent extends QuestContext implements Logger {
         }
 
         info("Quest stage: 144 = " + result);
-        if (getBot().getDialogues().inDialogue()) {
+        if (getBot().getDialogues().inDialogue() || getBot().getCamera().isLocked()) {
             info("Dialogue");
             if (result == 10 && START_AREA.contains(myPlayer())) {
                 if (new InteractEvent(getBot(), myPosition(), "Walk here").executed())

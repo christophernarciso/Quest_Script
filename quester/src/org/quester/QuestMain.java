@@ -10,7 +10,7 @@ import org.quester.questevents.p2p.*;
 @ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Quest")
 public class QuestMain extends Script implements Logger {
 
-    private boolean starterAccountMode = true, allFreeToPlayMode = true, avasReady = false, fungusReady = true, ldkready = false;
+    private boolean starterAccountMode = false, allFreeToPlayMode = false, avasReady = false, fungusReady = true, ldkready = false;
 
     @Override
     public void onStart() {
@@ -55,7 +55,6 @@ public class QuestMain extends Script implements Logger {
                     new NatureSpiritEvent(getBot())
             ).executed();
         } else if (avasReady) {
-            new AnimalMagnetismEvent(getBot()).executed();
             new RestlessGhostEvent(getBot()).then(
                     new ErnestTheChickenEvent(getBot()),
                     new WaterfallEvent(getBot()),

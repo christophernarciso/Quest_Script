@@ -8,6 +8,7 @@ import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
 import org.quantumbot.enums.spells.StandardSpellbook;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.events.WorldHopEvent;
@@ -406,6 +407,8 @@ public class WitchHouseEvent extends QuestContext implements Logger {
                     }
                     break;
                 case 7:
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.WITCHS_HOUSE.name());
                     setComplete();

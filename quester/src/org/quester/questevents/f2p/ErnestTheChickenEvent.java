@@ -4,6 +4,7 @@ import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.Quest;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.ItemCombineEvent;
 import org.quantumbot.interfaces.Logger;
@@ -90,7 +91,7 @@ public class ErnestTheChickenEvent extends QuestContext implements Logger {
         }
 
         info("Quest stage: 32 = " + result);
-        if (getBot().getDialogues().inDialogue()) {
+        if (getBot().getDialogues().inDialogue() || getBot().getCamera().isLocked()) {
             info("Dialogue");
             if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
@@ -192,6 +193,8 @@ public class ErnestTheChickenEvent extends QuestContext implements Logger {
                     break;
 
                 case 3:
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.ERNEST_THE_CHICKEN.name());
                     setComplete();

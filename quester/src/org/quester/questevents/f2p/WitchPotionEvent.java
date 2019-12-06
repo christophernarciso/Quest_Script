@@ -6,6 +6,7 @@ import org.quantumbot.api.equipment.AttackStyle;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.AttackStyleEvent;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.questutil.QuestContext;
@@ -110,7 +111,7 @@ public class WitchPotionEvent extends QuestContext implements Logger {
                             if (tail != null) {
                                 if (getInteractEvent(tail, "Take").executed())
                                     sleepUntil(3000, () -> getBot().getInventory().contains("Rat's tail"));
-                            } else if (!myPlayer().isInteracting() && interactNPC(r -> r != null && r.isAttackable(), "Attack"))
+                            } else if (!myPlayer().isInteracting() && interactNPC(r -> r != null && r.hasAction("Attack") && r.isAttackable(), "Attack"))
                                 sleepUntil(3000, () -> myPlayer().isInteracting());
                         } else {
                             getWeb(RAT_AREA).execute();
@@ -129,6 +130,8 @@ public class WitchPotionEvent extends QuestContext implements Logger {
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     break;
                 case 3:
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.WITCHS_POTION.name());
                     setComplete();

@@ -9,6 +9,7 @@ import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.Food;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.events.containers.BankEvent;
@@ -113,7 +114,7 @@ public class PriestInPerilEvent extends QuestContext implements Logger {
         }
 
         info("Quest stage: 302 = " + result);
-        if (getBot().getDialogues().inDialogue()) {
+        if (getBot().getDialogues().inDialogue() || getBot().getCamera().isLocked()) {
             info("Dialogue");
             if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
@@ -339,7 +340,8 @@ public class PriestInPerilEvent extends QuestContext implements Logger {
                     info("Talk to Drezel");
                     if (talkTo("Drezel"))
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
-
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.PRIEST_IN_PERIL.name());
                     setComplete();

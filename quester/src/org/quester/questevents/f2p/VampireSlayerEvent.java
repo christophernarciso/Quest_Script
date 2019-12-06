@@ -6,6 +6,7 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Food;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.interfaces.Logger;
@@ -157,7 +158,8 @@ public class VampireSlayerEvent extends QuestContext implements Logger {
                         info("Going upstairs");
                         sleepUntil(7000, () -> myPosition().getY() < 9000);
                     }
-
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.VAMPIRE_SLAYER.name());
                     setComplete();

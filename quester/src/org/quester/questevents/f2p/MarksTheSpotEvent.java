@@ -3,6 +3,7 @@ package org.quester.questevents.f2p;
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.questutil.QuestContext;
@@ -117,6 +118,8 @@ public class MarksTheSpotEvent extends QuestContext implements Logger {
                     break;
 
                 case 21:
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: X Marks the Spot");
                     setComplete();

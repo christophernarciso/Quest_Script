@@ -75,9 +75,11 @@ public class GoblinDiplomacyEvent extends QuestContext implements Logger {
         }
 
         info("Quest stage: 62 = " + result);
-        if (getBot().getDialogues().inDialogue()) {
+        if (getBot().getDialogues().inDialogue() || getBot().getCamera().isLocked()) {
             info("Dialogue");
-            if (getBot().getDialogues().isPendingContinuation()) {
+            if (result == 6 && !new CloseInterfacesEvent(getBot()).executed())
+                return;
+            else if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
                 if (new DialogueEvent(getBot()).setInterruptCondition(() -> getBot().getDialogues().isPendingOption()).executed())
                     sleepUntil(2000, () -> !getBot().getDialogues().isPendingContinuation());

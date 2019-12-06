@@ -3,6 +3,7 @@ package org.quester.questevents.f2p;
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.questutil.QuestContext;
@@ -73,7 +74,7 @@ public class RuneMysteriesEvent extends QuestContext implements Logger {
         }
 
         info("Quest stage: 63 = " + result);
-        if (getBot().getDialogues().inDialogue()) {
+        if (getBot().getDialogues().inDialogue() || getBot().getCamera().isLocked()) {
             info("Dialogue");
             if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
@@ -117,6 +118,8 @@ public class RuneMysteriesEvent extends QuestContext implements Logger {
                     }
                     break;
                 case 6:
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.RUNE_MYSTERIES.name());
                     setComplete();

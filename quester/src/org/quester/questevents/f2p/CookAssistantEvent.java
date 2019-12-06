@@ -3,6 +3,7 @@ package org.quester.questevents.f2p;
 import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.questutil.QuestContext;
@@ -86,6 +87,9 @@ public class CookAssistantEvent extends QuestContext implements Logger {
 
                 case 2:
                     // End
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
+
                     info("Finished: " + Quest.COOKS_ASSISTANT.name());
                     setComplete();
                     break;

@@ -4,6 +4,7 @@ import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.entities.NPC;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.questutil.QuestContext;
@@ -65,7 +66,7 @@ public class RestlessGhostEvent extends QuestContext implements Logger {
         }
 
         info("Quest stage: 107 = " + result);
-        if (getBot().getDialogues().inDialogue()) {
+        if (getBot().getDialogues().inDialogue() || getBot().getCamera().isLocked()) {
             info("Dialogue");
             if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
@@ -143,6 +144,8 @@ public class RestlessGhostEvent extends QuestContext implements Logger {
                     }
                     break;
                 case 5:
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.THE_RESTLESS_GHOST.name());
                     setComplete();

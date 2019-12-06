@@ -7,6 +7,7 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.HealEvent;
 import org.quantumbot.events.WebWalkEvent;
@@ -136,7 +137,7 @@ public class WaterfallEvent extends QuestContext implements Logger {
         }
 
         info("Quest stage: 65 = " + result);
-        if (getBot().getDialogues().inDialogue()) {
+        if (getBot().getDialogues().inDialogue() || getBot().getCamera().isLocked()) {
             info("Dialogue");
             if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
@@ -434,6 +435,8 @@ public class WaterfallEvent extends QuestContext implements Logger {
                     }
                     break;
                 case 10:
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.WATERFALL_QUEST.name());
                     setComplete();

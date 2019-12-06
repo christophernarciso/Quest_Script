@@ -5,6 +5,7 @@ import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.api.widgets.Widget;
 import org.quantumbot.enums.Quest;
+import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.ItemCombineEvent;
 import org.quantumbot.events.containers.EquipmentInteractEvent;
@@ -104,7 +105,7 @@ public class AnimalMagnetismEvent extends QuestContext implements Logger {
         }
 
         info("Quest stage: 939 = " + result);
-        if (getBot().getDialogues().inDialogue()) {
+        if (getBot().getDialogues().inDialogue() || getBot().getCamera().isLocked()) {
             info("Dialogue");
             if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
@@ -395,6 +396,8 @@ public class AnimalMagnetismEvent extends QuestContext implements Logger {
                     }
                     break;
                 case 240:
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
                     // End
                     info("Finished: " + Quest.ANIMAL_MAGNETISM.name());
                     setComplete();
