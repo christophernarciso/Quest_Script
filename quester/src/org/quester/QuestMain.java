@@ -6,6 +6,7 @@ import org.quantumbot.events.containers.BankOpenEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.f2p.*;
 import org.quester.questevents.p2p.*;
+import org.quester.questrequirements.PrayerRequirementEvent;
 
 @ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Quest")
 public class QuestMain extends Script implements Logger {
@@ -52,7 +53,8 @@ public class QuestMain extends Script implements Logger {
                     new WaterfallEvent(getBot()),
                     new RestlessGhostEvent(getBot()),
                     new PriestInPerilEvent(getBot()),
-                    new NatureSpiritEvent(getBot())
+                    new NatureSpiritEvent(getBot()),
+                    new PrayerRequirementEvent(getBot())
             ).executed();
         } else if (avasReady) {
             new RestlessGhostEvent(getBot()).then(

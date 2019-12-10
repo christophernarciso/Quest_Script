@@ -144,6 +144,10 @@ public abstract class QuestContext extends BotEvent {
         return new ObjectInteractEvent(getBot(), objectName, false).setWalk(false).setUse(useItemName).executed();
     }
 
+    public boolean useOnObject(String objectName, int useItemID) throws InterruptedException {
+        return new ObjectInteractEvent(getBot(), objectName, false).setWalk(false).setUse(useItemID).executed();
+    }
+
     public boolean useOnObject(Predicate<GameObject> objectPredicate, String useItemName) throws InterruptedException {
         return new ObjectInteractEvent(getBot(), objectPredicate, false).setWalk(false).setUse(useItemName).executed();
     }
@@ -154,6 +158,10 @@ public abstract class QuestContext extends BotEvent {
 
     public boolean useOnNPC(String npcName, String useItemName) throws InterruptedException {
         return new NPCInteractEvent(getBot(), npcName).setWalk(false).setUse(useItemName).executed();
+    }
+
+    public boolean useOnNPC(String npcName, int useItemID) throws InterruptedException {
+        return new NPCInteractEvent(getBot(), npcName).setWalk(false).setUse(useItemID).executed();
     }
 
     public boolean interactObject(String objectName, String... actions) throws InterruptedException {
@@ -276,5 +284,9 @@ public abstract class QuestContext extends BotEvent {
 
     public int getQuantity(ItemContainer container, int id) {
         return (int) container.getAmount(id);
+    }
+
+    public boolean isInHouse() {
+        return getBot().getGameObjects().closest("Tip jar") != null;
     }
 }

@@ -68,7 +68,7 @@ public class PriestInPerilEvent extends QuestContext implements Logger {
         itemReq.put("Lobster", 7);
         itemReq.put("Adamant scimitar", 1);
         itemReq.put("Amulet of strength", 1);
-        itemReq.put("Varrock teleport", 2);
+        itemReq.put("Varrock teleport", 5);
 
         info("Started: " + Quest.PRIEST_IN_PERIL.name());
         setGrabbedItems(false);

@@ -285,11 +285,11 @@ public class WaterfallEvent extends QuestContext implements Logger {
                                 if (inArea(GLARIAL_DUNGEON_AMULET_ROOM)) {
                                     info("Grabbing amulet");
                                     if (interactObject("Chest", "Open"))
-                                        sleep(1000);
+                                        sleep(600);
 
                                     if (interactObject("Chest", "Search")) {
                                         gotAmulet = true;
-                                        sleepUntil(3000, () -> getBot().getInventory().contains("Glarial's amulet"));
+                                        sleepUntil(3000, () -> getBot().getInventory().contains("Glarial's amulet") || getBot().getInventory().contains("Lobster") && getBot().getClient().getSkillBoosted(Skill.HITPOINTS) <= 15);
                                     }
                                 } else {
                                     info("Walking to glarials amulet room");
@@ -302,7 +302,7 @@ public class WaterfallEvent extends QuestContext implements Logger {
                                     info("Grabbing urn");
                                     if (interactObject("Glarial's Tomb", "Search")) {
                                         gotUrn = true;
-                                        sleepUntil(4000, () -> getBot().getInventory().contains("Glarial's urn"));
+                                        sleepUntil(4000, () -> getBot().getInventory().contains("Glarial's urn") || getBot().getInventory().contains("Lobster") && getBot().getClient().getSkillBoosted(Skill.HITPOINTS) <= 15);
                                     }
                                 } else {
                                     info("Walking to glarials urn room");

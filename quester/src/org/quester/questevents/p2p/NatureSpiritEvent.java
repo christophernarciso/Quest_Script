@@ -46,7 +46,7 @@ public class NatureSpiritEvent extends QuestContext implements Logger {
         itemReq.put("Ghostspeak amulet", 1);
         itemReq.put("Silver sickle", 1);
         itemReq.put("Adamant scimitar", 1);
-        itemReq.put("Varrock teleport", 1);
+        itemReq.put("Varrock teleport", 5);
         itemReq.put("Lobster", 13);
 
         info("Started: " + Quest.NATURE_SPIRIT.name());
@@ -93,18 +93,18 @@ public class NatureSpiritEvent extends QuestContext implements Logger {
         info("Quest stage: 307 = " + result);
         if (getBot().getDialogues().inDialogue() && !shouldUseItem || getBot().getCamera().isLocked()) {
             info("Dialogue");
-            if (result == 20 && !getBot().getInventory().contains("Mirror") && getBot().getDialogues().isPendingOption()) {
+            if (getBot().getVarps().getVarp(307) == 20 && !getBot().getInventory().contains("Mirror") && getBot().getDialogues().isPendingOption()) {
                 info("Stop dialogue need to grab items!");
                 if (getDialogue("Ok, thanks.").executed())
                     sleep(3000);
             } else if (getBot().getDialogues().isPendingContinuation()) {
                 info("Handling continue");
-                if (new DialogueEvent(getBot()).setInterruptCondition(() -> getBot().getDialogues().isPendingOption() || result == 20 && !getBot().getInventory().contains("Mirror")).executed())
+                if (new DialogueEvent(getBot()).setInterruptCondition(() -> getBot().getDialogues().isPendingOption() || getBot().getVarps().getVarp(307) == 20 && !getBot().getInventory().contains("Mirror")).executed())
                     sleepUntil(2000, () -> !getBot().getDialogues().isPendingContinuation());
             } else if (getBot().getDialogues().isPendingOption()) {
                 info("Handling option");
                 info("QUEST_DIALOGUE");
-                new DialogueEvent(getBot(), QUEST_DIALOGUE).setInterruptCondition(() -> result == 20 && !getBot().getInventory().contains("Mirror")).execute();
+                new DialogueEvent(getBot(), QUEST_DIALOGUE).setInterruptCondition(() -> getBot().getVarps().getVarp(307) == 20 && !getBot().getInventory().contains("Mirror")).execute();
                 sleep(1000);
             } else {
                 info("No dialogue???");
