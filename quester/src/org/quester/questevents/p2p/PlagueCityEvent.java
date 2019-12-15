@@ -1,13 +1,13 @@
 package org.quester.questevents.p2p;
 
 import org.quantumbot.api.QuantumBot;
-import org.quantumbot.api.entities.GameObject;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.api.map.Tile;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.ItemCombineEvent;
+import org.quantumbot.events.interactions.WidgetInteractEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.questutil.QuestContext;
 
@@ -16,7 +16,7 @@ import java.util.HashMap;
 public class PlagueCityEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
-            "What's happened to her?", "Can I help find her?", "Hi, I'm looking for a woman from East Ardougne.",
+            "What's happened to her?", "Can I help find her?", "Yes.", "Hi, I'm looking for a woman from East Ardougne.",
             "Yes, I'll return it for you.", "But I think a kidnap victim is in here.", "I want to check anyway.",
             "I need permission to enter a plague house.", "This is urgent though!", "This is really important though!",
             "Do you know what's in the cure?", "They won't listen to me!"
@@ -50,7 +50,7 @@ public class PlagueCityEvent extends QuestContext implements Logger {
         itemReq.put("Bucket of milk", 1);
         itemReq.put("Chocolate dust", 1);
         itemReq.put("Snape grass", 1);
-        itemReq.put("Camelot teleport", 2);
+        itemReq.put("Necklace of passage(1~5)", 1);
         info("Started: " + Quest.PLAGUE_CITY.name());
         setGrabbedItems(false);
         askedToPull = false;
@@ -63,6 +63,10 @@ public class PlagueCityEvent extends QuestContext implements Logger {
         if (result == 0 && !hasQuestItemsBeforeStarting(itemReq, false) && !isGrabbedItems()) {
             if (hasQuestItemsBeforeStarting(itemReq, true)) {
                 info("Bank event execute");
+                // Make sure we deposit worn items.
+                new WidgetInteractEvent(getBot(), w -> w != null && w.isVisible()
+                        && w.hasAction("Deposit worn items")).executed();
+                sleep(2000);
                 // Load bank event and execute withdraw;
                 setGrabbedItems(getBankEvent(itemReq).executed());
             } else {
@@ -96,6 +100,7 @@ public class PlagueCityEvent extends QuestContext implements Logger {
             }
         } else {
             switch (result) {
+                case 28:
                 case 2:
                     // Return to Edmond
                 case 0:
@@ -143,9 +148,9 @@ public class PlagueCityEvent extends QuestContext implements Logger {
                 case 8:
                     info("Attempt to open grill");
                     if (interactObject("Grill", "Open")) {
-                        sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                        sleepUntil(5000, () -> getBot().getDialogues().inDialogue());
                         if (useOnObject("Grill", "Rope"))
-                            sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                            sleepUntil(6000, () -> getBot().getDialogues().inDialogue());
                     }
                     break;
                 case 9:
@@ -283,48 +288,15 @@ public class PlagueCityEvent extends QuestContext implements Logger {
                         getWeb(PLAGUE_HOUSE_ENTRANCE_AREA).execute();
                     }
                     break;
-                case 28:
-                    if (myPosition().getY() > 9000) {
-                        if (talkTo("Edmond")) {
-                            sleepUntil(5000, () -> getBot().getDialogues().inDialogue());
-                            askedToPull = true;
-                        } else {
-                            info("Walking closer to Edmond");
-                            getWeb(new Tile(2517, 9748, 0)).execute();
-                        }
-                    } else if (inArea(PRISON_ROOM_AREA)) {
-                        if (useOnObject("Door", "A small key")) {
-                            info("Unlock door");
-                            sleep(2000);
-                            if (interactObject("Spooky stairs", "Walk-up")) {
-                                info("Walking upstairs");
-                                sleepUntil(4000, () -> inArea(PLAGUE_HOUSE_GROUND_FLOOR_AREA));
-                            }
-                        }
-                    } else if (inArea(MAN_HOLE_AREA)) {
-                        GameObject hole = getBot().getGameObjects().first("Manhole");
-                        if (hole != null) {
-                            if (hole.hasAction("Open") && getInteractEvent(hole, "Open").executed()) {
-                                info("Opening manhole");
-                                sleepGameCycle();
-                            } else if (hole.hasAction("Climb-down") && getInteractEvent(hole, "Climb-down").executed()) {
-                                info("Going down manhole");
-                                sleepUntil(7000, () -> myPosition().getY() > 9000);
-                            }
-                        }
-                    } else {
-                        info("Walking to man hole");
-                        getWeb(MAN_HOLE_AREA).execute();
-                    }
-
                 case 29:
-                    if (interactInventory("A magic scroll", "Read")) {
+                    if (!new CloseInterfacesEvent(getBot()).executed())
+                        return;
+
+                    if (interactInventory("Ardougne teleport scroll", "Read")) {
                         sleepUntil(5000, () -> getBot().getDialogues().inDialogue());
                     }
                     break;
                 case 30:
-                    if (!new CloseInterfacesEvent(getBot()).executed())
-                        return;
                     // End
                     info("Finished: " + Quest.PLAGUE_CITY.name());
                     setComplete();

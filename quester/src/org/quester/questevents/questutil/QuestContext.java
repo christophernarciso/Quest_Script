@@ -52,7 +52,10 @@ public abstract class QuestContext extends BotEvent {
     }
 
     public WebWalkEvent getWeb(Area area) {
-        return new WebWalkEvent(getBot(), area);
+        WebWalkEvent w = new WebWalkEvent(getBot(), area);
+        w.setInterruptCondition(() -> getBot().getInventory().contains(item -> item != null && item.hasAction("Eat"))
+                && ourHealthPercent() <= 50);
+        return w;
     }
 
     public WebWalkEvent getWeb(Tile tile) {
@@ -130,6 +133,13 @@ public abstract class QuestContext extends BotEvent {
             return true;
 
         return new NPCInteractEvent(getBot(), npcName, "Talk-to").executed();
+    }
+
+    public boolean talkTo(String npcName, boolean pathFind) throws InterruptedException {
+        if (getBot().getDialogues().inDialogue())
+            return true;
+
+        return new NPCInteractEvent(getBot(), npcName, pathFind, "Talk-to").setWalk(false).executed();
     }
 
     public boolean interactNPC(String npcName, String... actions) throws InterruptedException {

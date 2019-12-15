@@ -55,12 +55,12 @@ public class PrayerRequirementEvent extends QuestContext implements Logger {
                 return;
             }
 
-            info("Buying dragon bones x240");
+            info("Buying dragon bones");
             new GEEvent(getBot())
                     .setCollectUnnoted(false)
                     .setAlwaysBuy(true)
                     .setDepositAll(false)
-                    .buy(265, getBot().getPriceGrabber().getBuyPrice(536), "Dragon bones", "Dragon bones")
+                    .buy(300, getBot().getPriceGrabber().getBuyPrice(536), "Dragon bones", "Dragon bones")
             .execute();
             return;
         }

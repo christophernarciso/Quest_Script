@@ -11,7 +11,7 @@ import org.quester.questrequirements.PrayerRequirementEvent;
 @ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Quest")
 public class QuestMain extends Script implements Logger {
 
-    private boolean starterAccountMode = false, allFreeToPlayMode = false, avasReady = false, fungusReady = true, ldkready = false;
+    private boolean starterAccountMode = true, allFreeToPlayMode = false, avasReady = false, fungusReady = false, ldkready = false;
 
     @Override
     public void onStart() {
@@ -43,7 +43,13 @@ public class QuestMain extends Script implements Logger {
                     new WitchPotionEvent(getBot()),
                     new WitchHouseEvent(getBot()),
                     new WaterfallEvent(getBot()),
-                    new VampireSlayerEvent(getBot())
+                    new VampireSlayerEvent(getBot()),
+                    new RestlessGhostEvent(getBot()),
+                    new PriestInPerilEvent(getBot()),
+                    new PrayerRequirementEvent(getBot()),
+                    new PlagueCityEvent(getBot()),
+                    new FightArenaEvent(getBot()),
+                    new TreeGnomeVillageEvent(getBot())
             ).executed();
             starterAccountMode = false;
         } else if (fungusReady) {
@@ -56,6 +62,7 @@ public class QuestMain extends Script implements Logger {
                     new NatureSpiritEvent(getBot()),
                     new PrayerRequirementEvent(getBot())
             ).executed();
+            fungusReady = false;
         } else if (avasReady) {
             new RestlessGhostEvent(getBot()).then(
                     new ErnestTheChickenEvent(getBot()),
@@ -71,6 +78,7 @@ public class QuestMain extends Script implements Logger {
                     new WitchPotionEvent(getBot()),
                     new WitchHouseEvent(getBot())
             ).executed();
+            ldkready = false;
         } else {
             getBot().stop();
         }
