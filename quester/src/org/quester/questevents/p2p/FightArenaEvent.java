@@ -4,6 +4,7 @@ import org.quantumbot.api.QuantumBot;
 import org.quantumbot.api.map.Area;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
+import org.quantumbot.enums.spells.StandardSpellbook;
 import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
 import org.quantumbot.events.interactions.WidgetInteractEvent;
@@ -15,52 +16,53 @@ import java.util.HashMap;
 public class FightArenaEvent extends QuestContext implements Logger {
 
     private final String[] QUEST_DIALOGUE = {
-            "Can I help you?"
+            "Can I help you?", "I'd like a Khali brew please."
     };
 
     private final Area START_AREA = new Area(2563, 3201, 2571, 3194);
     private final Area ARMOUR_AREA = new Area(
             new int[][]{
-                    { 2612, 3191 },
-                    { 2612, 3190 },
-                    { 2613, 3189 },
-                    { 2614, 3189 },
-                    { 2615, 3190 },
-                    { 2615, 3191 }
+                    {2612, 3191},
+                    {2612, 3190},
+                    {2613, 3189},
+                    {2614, 3189},
+                    {2615, 3190},
+                    {2615, 3191}
             }
     );
     private final Area JAIL_ENTRANCE_NORTHERN_AREA = new Area(
             new int[][]{
-                    { 2616, 3173 },
-                    { 2617, 3172 },
-                    { 2619, 3172 },
-                    { 2619, 3173 },
-                    { 2619, 3174 },
-                    { 2618, 3174 }
+                    {2616, 3173},
+                    {2617, 3172},
+                    {2619, 3172},
+                    {2619, 3173},
+                    {2619, 3174},
+                    {2618, 3174}
             }
     );
     private final Area JAIL_PRISON_CELLS_NORTHERN_AREA = new Area(
             new int[][]{
-                    { 2615, 3172 },
-                    { 2614, 3170 },
-                    { 2614, 3156 },
-                    { 2615, 3155 },
-                    { 2616, 3155 },
-                    { 2616, 3152 },
-                    { 2612, 3152 },
-                    { 2612, 3139 },
-                    { 2620, 3139 },
-                    { 2620, 3151 },
-                    { 2618, 3152 },
-                    { 2618, 3155 },
-                    { 2619, 3155 },
-                    { 2620, 3156 },
-                    { 2620, 3171 },
-                    { 2619, 3172 }
+                    {2615, 3172},
+                    {2614, 3170},
+                    {2614, 3156},
+                    {2615, 3155},
+                    {2616, 3155},
+                    {2616, 3152},
+                    {2612, 3152},
+                    {2612, 3139},
+                    {2620, 3139},
+                    {2620, 3151},
+                    {2618, 3152},
+                    {2618, 3155},
+                    {2619, 3155},
+                    {2620, 3156},
+                    {2620, 3171},
+                    {2619, 3172}
             }
     );
     private final Area GUARD_AREA = new Area(2613, 3145, 2619, 3139);
     private final Area BAR_AREA = new Area(2563, 3150, 2570, 3139);
+    private final Area SAMMY_PRISON_AREA = new Area(2617, 3171, 2618, 3166);
     private HashMap<String, Integer> itemReq = new HashMap<>();
     private boolean talkedToSam;
 
@@ -143,6 +145,9 @@ public class FightArenaEvent extends QuestContext implements Logger {
             } else {
                 info("No dialogue???");
             }
+        } else if (getBot().getInventory().contains(item -> item.getName().contains("Prayer potion")) && getBot().getClient().getSkillBoosted(Skill.PRAYER) < 10) {
+            if (interactInventory(item -> item.getName().contains("Prayer potion"), "Drink"))
+                sleepUntil(3000, () -> getBot().getClient().getSkillBoosted(Skill.PRAYER) > 10);
         } else {
             switch (result) {
                 case 0:
@@ -153,7 +158,7 @@ public class FightArenaEvent extends QuestContext implements Logger {
                     }
 
                     if (talkTo("Lady Servil"))
-                        sleepUntil(3000,  () -> getBot().getDialogues().inDialogue());
+                        sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     break;
                 case 1:
                     if (!inArea(ARMOUR_AREA)) {
@@ -165,12 +170,12 @@ public class FightArenaEvent extends QuestContext implements Logger {
                         sleep(2000);
 
                     if (interactObject("Chest", "Search"))
-                        sleepUntil(3000,  () -> getBot().getDialogues().inDialogue());
+                        sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     break;
                 case 2:
                     if (getBot().getInventory().contains("Khazard helmet", "Khazard armour")) {
                         String[] equip = {"Khazard helmet", "Khazard armour"};
-                        for (String x :equip) {
+                        for (String x : equip) {
                             if (interactInventory(x, "Wear"))
                                 sleep(1000);
                         }
@@ -187,12 +192,41 @@ public class FightArenaEvent extends QuestContext implements Logger {
                         }
                     } else if (inArea(JAIL_ENTRANCE_NORTHERN_AREA)) {
                         if (interactObject("Door", "Open"))
-                            sleepUntil(3000,  () -> getBot().getDialogues().inDialogue());
+                            sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     } else {
                         getWeb(JAIL_ENTRANCE_NORTHERN_AREA).execute();
                     }
                     break;
                 case 3:
+                    if (!getBot().getInventory().contains("Khali brew")) {
+                        if (!inArea(BAR_AREA)) {
+                            getWeb(BAR_AREA).execute();
+                            return;
+                        }
+
+                        if (talkTo("Khazard barman"))
+                            sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                    } else if (!inArea(GUARD_AREA)) {
+                        getWeb(GUARD_AREA).execute();
+                    } else if (talkTo("Khazard Guard")) {
+                        sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                    }
+                    break;
+                case 5:
+                    if (!isAutocasting()) {
+                        info("Need to autocast spell");
+                        if (autocastSpell(getBot().getClient().getSkillReal(Skill.MAGIC) >= 13 ? StandardSpellbook.FIRE_STRIKE : StandardSpellbook.EARTH_STRIKE, false)) {
+                            sleepUntil(3000, this::isAutocasting);
+                        }
+                        return;
+                    }
+
+                    if (!inArea(SAMMY_PRISON_AREA)) {
+                        getWeb(SAMMY_PRISON_AREA).execute();
+                        return;
+                    }
+
+
                     break;
                 case 30:
                     if (!new CloseInterfacesEvent(getBot()).executed())
