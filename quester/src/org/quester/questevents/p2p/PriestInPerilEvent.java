@@ -336,10 +336,12 @@ public class PriestInPerilEvent extends QuestContext implements Logger {
                     break;
                 case 61:
                 case 60:
-                    sleepGameCycle();
-                    info("Talk to Drezel");
-                    if (talkTo("Drezel"))
-                        sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                    if (inArea(START_AREA)) {
+                        sleepGameCycle();
+                        info("Talk to Drezel");
+                        if (talkTo("Drezel"))
+                            sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                    }
                     if (!new CloseInterfacesEvent(getBot()).executed())
                         return;
                     // End

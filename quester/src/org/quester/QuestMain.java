@@ -6,6 +6,7 @@ import org.quantumbot.events.containers.BankOpenEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.f2p.*;
 import org.quester.questevents.p2p.*;
+import org.quester.questrequirements.AgilityRequirementEvent;
 import org.quester.questrequirements.PrayerRequirementEvent;
 
 @ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Quest")
@@ -49,7 +50,9 @@ public class QuestMain extends Script implements Logger {
                     new PrayerRequirementEvent(getBot()),
                     new PlagueCityEvent(getBot()),
                     new FightArenaEvent(getBot()),
-                    new TreeGnomeVillageEvent(getBot())
+                    new TreeGnomeVillageEvent(getBot()),
+                    new AgilityRequirementEvent(getBot(), 25)
+
             ).executed();
             starterAccountMode = false;
         } else if (fungusReady) {

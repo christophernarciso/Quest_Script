@@ -296,16 +296,6 @@ public class WitchHouseEvent extends QuestContext implements Logger {
                                                 }
                                             }
                                         }
-//                                        if (getBot().getInventory().isSelected(i -> i != null && i.hasName("Key"))) {
-//                                            info("Entering boss room");
-//                                            if (interactObject("Door", "Use")) {
-//                                                info("Used key on boss door");
-//                                                sleepUntil(3000, () -> inArea(BOSS_ROOM_AREA));
-//                                            }
-//                                        } else if (interactInventory("Key", "Use")) {
-//                                            info("Selected key");
-//                                            sleepUntil(3000, () -> getBot().getInventory().isSelected(i -> i != null && i.hasName("Key")));
-//                                        }
                                     } else {
                                         info("Have key traverse to boss door");
                                         switch (myX) {

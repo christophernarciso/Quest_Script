@@ -1,12 +1,15 @@
 package org.quester.questevents.p2p;
 
 import org.quantumbot.api.QuantumBot;
+import org.quantumbot.api.entities.NPC;
 import org.quantumbot.api.map.Area;
+import org.quantumbot.enums.Prayer;
 import org.quantumbot.enums.Quest;
 import org.quantumbot.enums.Skill;
 import org.quantumbot.enums.spells.StandardSpellbook;
 import org.quantumbot.events.CloseInterfacesEvent;
 import org.quantumbot.events.DialogueEvent;
+import org.quantumbot.events.TogglePrayerEvent;
 import org.quantumbot.events.interactions.WidgetInteractEvent;
 import org.quantumbot.interfaces.Logger;
 import org.quester.questevents.questutil.QuestContext;
@@ -60,11 +63,13 @@ public class FightArenaEvent extends QuestContext implements Logger {
                     {2619, 3172}
             }
     );
+    private final Area JAIL_PRISON_CELLS_WESTERN_AREA = new Area(2585, 3144, 2603, 3139);
     private final Area GUARD_AREA = new Area(2613, 3145, 2619, 3139);
     private final Area BAR_AREA = new Area(2563, 3150, 2570, 3139);
     private final Area SAMMY_PRISON_AREA = new Area(2617, 3171, 2618, 3166);
+    private final Area FIGHT_ARENA = new Area(2595, 3167, 2606, 3154);
     private HashMap<String, Integer> itemReq = new HashMap<>();
-    private boolean talkedToSam;
+    private boolean talkedToNPC;
 
     public FightArenaEvent(QuantumBot context) {
         super(context);
@@ -150,6 +155,15 @@ public class FightArenaEvent extends QuestContext implements Logger {
                 sleepUntil(3000, () -> getBot().getClient().getSkillBoosted(Skill.PRAYER) > 10);
         } else {
             switch (result) {
+                case 13:
+                    if (myPlayer().isAnimating())
+                        return;
+
+                    if (getBot().getClient().isPrayerActive(Prayer.PROTECT_FROM_MELEE)) {
+                        new TogglePrayerEvent(getBot(), Prayer.PROTECT_FROM_MELEE, false).execute();
+                        talkedToNPC = false;
+                        return;
+                    }
                 case 0:
                     // Start
                     if (!inArea(START_AREA)) {
@@ -180,9 +194,9 @@ public class FightArenaEvent extends QuestContext implements Logger {
                                 sleep(1000);
                         }
                     } else if (inArea(JAIL_PRISON_CELLS_NORTHERN_AREA)) {
-                        if (!talkedToSam) {
+                        if (!talkedToNPC) {
                             if (talkTo("Sammy Servil", false)) {
-                                talkedToSam = true;
+                                talkedToNPC = true;
                                 sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                             }
                         } else if (!inArea(GUARD_AREA)) {
@@ -211,8 +225,12 @@ public class FightArenaEvent extends QuestContext implements Logger {
                     } else if (talkTo("Khazard Guard")) {
                         sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                     }
+                    talkedToNPC = false;
                     break;
                 case 5:
+                    if (talkedToNPC)
+                        return;
+
                     if (!isAutocasting()) {
                         info("Need to autocast spell");
                         if (autocastSpell(getBot().getClient().getSkillReal(Skill.MAGIC) >= 13 ? StandardSpellbook.FIRE_STRIKE : StandardSpellbook.EARTH_STRIKE, false)) {
@@ -226,9 +244,68 @@ public class FightArenaEvent extends QuestContext implements Logger {
                         return;
                     }
 
-
+                    if (useOnObject(p -> p != null && SAMMY_PRISON_AREA.contains(p) && p.hasName("Prison Door") && p.getTile().getY() == 3167, "Khazard cell keys")) {
+                        sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                        talkedToNPC = true;
+                    }
                     break;
-                case 30:
+                case 6:
+                    // Fight bosses.
+                    NPC boss_ogre = getBot().getNPCs().closest(n -> n != null && n.hasAction("Attack") && n.isAttackable() && n.hasName("Khazard Ogre"));
+                    if (boss_ogre != null && !myPlayer().isInteracting(boss_ogre)) {
+                        info("Need to fight the boss.");
+                        if (!getBot().getClient().isPrayerActive(Prayer.PROTECT_FROM_MELEE)) {
+                            new TogglePrayerEvent(getBot(), Prayer.PROTECT_FROM_MELEE, true).execute();
+                            return;
+                        }
+                        if (getInteractEvent(boss_ogre, "Attack").executed())
+                            sleepUntil(3000, () -> myPlayer().isInteracting(boss_ogre));
+                    }
+                    break;
+                case 8:
+                    // Dialogue
+                    break;
+                case 12:
+                case 10:
+                case 9:
+                    if (inArea(FIGHT_ARENA)) {
+                        // Fight bosses.
+                        String name = result == 12 ? "General Khazard" : result == 10 ? "Bouncer" : "Khazard Scorpion";
+                        NPC boss_scorp = getBot().getNPCs().closest(n -> n != null && n.hasAction("Attack") && n.isAttackable() && n.hasName(name));
+                        if (boss_scorp != null && !myPlayer().isInteracting(boss_scorp)) {
+                            info("Need to fight the boss.");
+                            if (!getBot().getClient().isPrayerActive(Prayer.PROTECT_FROM_MELEE)) {
+                                new TogglePrayerEvent(getBot(), Prayer.PROTECT_FROM_MELEE, true).execute();
+                                return;
+                            }
+                            if (getInteractEvent(boss_scorp, "Attack").executed())
+                                sleepUntil(3000, () -> myPlayer().isInteracting(boss_scorp));
+                        }
+                        return;
+                    }
+
+                    if (myPlayer().isMoving())
+                        return;
+
+                    if (!inArea(JAIL_PRISON_CELLS_WESTERN_AREA))
+                        return;
+
+                    if (getBot().getClient().isPrayerActive(Prayer.PROTECT_FROM_MELEE)) {
+                        new TogglePrayerEvent(getBot(), Prayer.PROTECT_FROM_MELEE, false).execute();
+                        talkedToNPC = false;
+                        return;
+                    }
+
+                    if (talkedToNPC)
+                        return;
+
+                    // Talk to Hengrad
+                    if (talkTo("Hengrad")) {
+                        talkedToNPC = true;
+                        sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                    }
+                    break;
+                case 15:
                     if (!new CloseInterfacesEvent(getBot()).executed())
                         return;
                     // End
