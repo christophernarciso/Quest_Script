@@ -89,9 +89,8 @@ public class FightArenaEvent extends QuestContext implements Logger {
         else
             itemReq.put("Staff of earth", 1);
         itemReq.put("Amulet of magic", 1);
-        itemReq.put("Wizard hat", 1);
         info("Started: " + Quest.FIGHT_ARENA.name());
-        setGrabbedItems(true);
+        setGrabbedItems(false);
     }
 
     @Override
@@ -250,9 +249,21 @@ public class FightArenaEvent extends QuestContext implements Logger {
                     }
                     break;
                 case 6:
+                    if (myPlayer().isMoving()) {
+                        info("Moving....");
+                        sleepUntil(25000, () -> !myPlayer().isMoving());
+                        return;
+                    }
+
                     // Fight bosses.
                     NPC boss_ogre = getBot().getNPCs().closest(n -> n != null && n.hasAction("Attack") && n.isAttackable() && n.hasName("Khazard Ogre"));
-                    if (boss_ogre != null && !myPlayer().isInteracting(boss_ogre)) {
+                    if (boss_ogre == null) {
+                        if (talkTo("Justin Servil"))
+                            sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                        return;
+                    }
+
+                    if (!myPlayer().isInteracting(boss_ogre)) {
                         info("Need to fight the boss.");
                         if (!getBot().getClient().isPrayerActive(Prayer.PROTECT_FROM_MELEE)) {
                             new TogglePrayerEvent(getBot(), Prayer.PROTECT_FROM_MELEE, true).execute();
@@ -268,6 +279,12 @@ public class FightArenaEvent extends QuestContext implements Logger {
                 case 12:
                 case 10:
                 case 9:
+                    if (myPlayer().isMoving()) {
+                        info("Moving....");
+                        sleepUntil(25000, () -> !myPlayer().isMoving());
+                        return;
+                    }
+
                     if (inArea(FIGHT_ARENA)) {
                         // Fight bosses.
                         String name = result == 12 ? "General Khazard" : result == 10 ? "Bouncer" : "Khazard Scorpion";
@@ -283,9 +300,6 @@ public class FightArenaEvent extends QuestContext implements Logger {
                         }
                         return;
                     }
-
-                    if (myPlayer().isMoving())
-                        return;
 
                     if (!inArea(JAIL_PRISON_CELLS_WESTERN_AREA))
                         return;

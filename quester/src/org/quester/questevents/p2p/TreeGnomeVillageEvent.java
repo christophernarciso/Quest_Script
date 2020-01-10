@@ -143,7 +143,9 @@ public class TreeGnomeVillageEvent extends QuestContext implements Logger {
                     sleepUntil(2000, () -> !getBot().getDialogues().isPendingContinuation());
             } else if (getBot().getDialogues().isPendingOption()) {
                 if (result == 4 && inArea(BALLISTA_AREA)) {
-                    getDialogue("000" + index++).execute();
+                    String x = "000" + index++;
+                    info("Selection option: " + x);
+                    getDialogue(x).execute();
                     return;
                 }
 
