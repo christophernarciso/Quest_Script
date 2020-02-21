@@ -345,6 +345,8 @@ public class DeathPlateauEvent extends QuestContext implements Logger {
                             if (inArea(FIFTH_STAGE_AREA)) {
                                 if (interactObject("Ladder", "Climb-down"))
                                     sleepUntil(7000, () -> !inArea(FIFTH_STAGE_AREA));
+                                // Updates too quickly so we need a small delay for the local pathfinder
+                                sleep(2000);
                                 return;
                             }
                             getWeb(SIXTH_STAGE_AREA).execute();

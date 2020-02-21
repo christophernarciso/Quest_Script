@@ -256,8 +256,13 @@ public class FightArenaEvent extends QuestContext implements Logger {
                     }
 
                     // Fight bosses.
-                    NPC boss_ogre = getBot().getNPCs().closest(n -> n != null && n.hasAction("Attack") && n.isAttackable() && n.hasName("Khazard Ogre"));
+                    NPC boss_ogre = getBot().getNPCs().closest(n -> n != null && n.getTile().getX() <= 2606 && n.hasAction("Attack")
+                            && n.isAttackable() && n.hasName("Khazard Ogre"));
                     if (boss_ogre == null) {
+                        if (!getBot().getClient().isPrayerActive(Prayer.PROTECT_FROM_MELEE)) {
+                            new TogglePrayerEvent(getBot(), Prayer.PROTECT_FROM_MELEE, true).execute();
+                            return;
+                        }
                         if (talkTo("Justin Servil"))
                             sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
                         return;
@@ -288,15 +293,26 @@ public class FightArenaEvent extends QuestContext implements Logger {
                     if (inArea(FIGHT_ARENA)) {
                         // Fight bosses.
                         String name = result == 12 ? "General Khazard" : result == 10 ? "Bouncer" : "Khazard Scorpion";
-                        NPC boss_scorp = getBot().getNPCs().closest(n -> n != null && n.hasAction("Attack") && n.isAttackable() && n.hasName(name));
-                        if (boss_scorp != null && !myPlayer().isInteracting(boss_scorp)) {
-                            info("Need to fight the boss.");
-                            if (!getBot().getClient().isPrayerActive(Prayer.PROTECT_FROM_MELEE)) {
-                                new TogglePrayerEvent(getBot(), Prayer.PROTECT_FROM_MELEE, true).execute();
+                        NPC bosses = getBot().getNPCs().closest(n -> n != null && n.hasAction("Attack") && n.getTile().getX() <= 2606
+                                && n.isAttackable() && n.hasName(name));
+
+                        if (!getBot().getClient().isPrayerActive(Prayer.PROTECT_FROM_MELEE)) {
+                            new TogglePrayerEvent(getBot(), Prayer.PROTECT_FROM_MELEE, true).execute();
+                            return;
+                        }
+
+                        if (bosses == null) {
+                            if (myPlayer().isAnimating() || myPlayer().isInteracting())
                                 return;
-                            }
-                            if (getInteractEvent(boss_scorp, "Attack").executed())
-                                sleepUntil(3000, () -> myPlayer().isInteracting(boss_scorp));
+                            if (talkTo("Sammy Servil"))
+                                sleepUntil(3000, () -> getBot().getDialogues().inDialogue());
+                            return;
+                        }
+
+                        if (!myPlayer().isInteracting(bosses)) {
+                            info("Need to fight the boss.");
+                            if (getInteractEvent(bosses, "Attack").executed())
+                                sleepUntil(3000, () -> myPlayer().isInteracting(bosses));
                         }
                         return;
                     }

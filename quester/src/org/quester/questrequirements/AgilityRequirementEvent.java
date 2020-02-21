@@ -93,7 +93,7 @@ public class AgilityRequirementEvent extends QuestContext implements Logger {
                                 || getBot().getDialogues().inDialogue() || ourHealthPercent() < lastHealth);
                         if (wildernessFailsafe)
                             wildernessFailsafeTile = obstacle.getName().equals("Log balance") ? new Tile(3002, 3946, 0) : new Tile(3005, 3951, 0);
-                        if (LAST_OBSTACLE_AREA.contains(myPosition())) {
+                        if (this.course.getCourse() ==  CourseType.GNOME && LAST_OBSTACLE_AREA.contains(myPosition())) {
                             this.course = getBestCourse(current);
                             this.obstacles.clear();
                             this.obstacles = course.getObstacles(getBot());
@@ -131,6 +131,12 @@ public class AgilityRequirementEvent extends QuestContext implements Logger {
                         sleepUntil(3000, () -> !BARBARIAN_TRAP2_FAILSAFE_ROOM.contains(getBot().getPlayers().getLocal()));
                 }
             } else {
+                int current = getBot().getClient().getSkillReal(Skill.AGILITY);
+                this.course = getBestCourse(current);
+                this.obstacles.clear();
+                this.obstacles = course.getObstacles(getBot());
+                this.startingTile = course.tile();
+                LAST_OBSTACLE_AREA = obstacles.getLast().getArea();
                 getWeb(startingTile).setDestinationAccuracy(0).execute();
             }
         }

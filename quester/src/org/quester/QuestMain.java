@@ -12,7 +12,7 @@ import org.quester.questrequirements.PrayerRequirementEvent;
 @ScriptManifest(description = "", author = "N I X", image = "", version = 1, name = "Quest")
 public class QuestMain extends Script implements Logger {
 
-    private boolean starterAccountMode = true, allFreeToPlayMode = false, avasReady = false, fungusReady = false, ldkready = false;
+    private boolean starterAccountMode = false, allFreeToPlayMode = true, avasReady = false, fungusReady = false, ldkready = false;
 
     @Override
     public void onStart() {
